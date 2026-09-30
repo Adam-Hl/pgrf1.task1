@@ -1,21 +1,21 @@
 package controller;
 
 import rasterize.LineRasterizer;
-import rasterize.LineRasterizerGraphics;
+import rasterize.LineRasterizerTrivial;
 import view.Panel;
 
 import java.awt.event.*;
 
 public class Controller2D {
     private final Panel panel;
-    private LineRasterizer lineRasterizer;
+    private final LineRasterizer lineRasterizer;
 
     public Controller2D(Panel panel) {
         this.panel = panel;
 
         panel.getRaster().setPixel(50, 50, 0xffff00);
 
-        lineRasterizer = new LineRasterizerGraphics(panel.getRaster());
+        this.lineRasterizer = new LineRasterizerTrivial(panel.getRaster());
 
         initListeners();
     }

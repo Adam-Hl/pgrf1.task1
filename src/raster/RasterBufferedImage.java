@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 
 // nový raster pro projekt
 public class RasterBufferedImage implements Raster{
-
+    // custom raster, který využívá BufferedImage pro vykreslování pixelů
     private final BufferedImage image;
 
     public RasterBufferedImage(int width, int height) {
@@ -15,7 +15,7 @@ public class RasterBufferedImage implements Raster{
     @Override
     // nový "setRGB" s kontrolou kreslení mimo raster
     public void setPixel(int x, int y, int color) {
-        if (x >= 0 && 0 >= y && x < getWidth() && y < getHeight()) {
+        if (x >= 0 && 0 <= y && x < getWidth() && y < getHeight()) {
             image.setRGB(x, y, color);
         }
     }

@@ -1,10 +1,9 @@
 package raster;
 
-import java.awt.image.BufferedImage;
-// interface pro různé rastery
+// interface pro různé rastery -- mřížky pro vykreslování pixelů
 public interface Raster {
-    public void setPixel(int x, int y, int color);
-    public int getWidth();
-    public int getHeight();
-    public void clear();
+    void setPixel(int x, int y, int color);
+    int getWidth();
+    int getHeight();
+    void clear();
 }
