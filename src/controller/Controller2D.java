@@ -1,5 +1,8 @@
 package controller;
 
+import polygon.Point;
+import polygon.Polygon;
+import raster.RasterBufferedImage;
 import rasterize.LineRasterizer;
 import rasterize.LineRasterizerTrivial;
 import view.Panel;
@@ -54,10 +57,6 @@ public class Controller2D {
                 startX = e.getX();
                 startY = e.getY();
                 dragging = true;
-
-                panel.getRaster().clear();
-                lineRasterizer.rasterize(startX, startY, startX, startY);
-                panel.repaint();
             }
 
             // kdyý se myš pohybuje tak se vykreslí přímka od startovního bodu po aktuální pozici myši
@@ -67,7 +66,8 @@ public class Controller2D {
                     return;
                 }
 
-                panel.getRaster().clear();
+                // pouze animace přímky při tažení myší
+                ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
                 lineRasterizer.rasterize(startX, startY, e.getX(), e.getY());
                 panel.repaint();
             }
@@ -76,10 +76,18 @@ public class Controller2D {
             @Override
             public void mouseReleased(MouseEvent e) {
                 dragging = false;
+
+                // přidání polygonu do seznamu polygonů a překreslení všech polygonů
+                Polygon polygon = new Polygon();
+                polygon.addPoint(new Point(startX, startY));
+                polygon.addPoint(new Point(e.getX(), e.getY()));
+                ((RasterBufferedImage)panel.getRaster()).addPolygon(polygon);
+                ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
             }
         };
 
         panel.addMouseListener(mouseAdapter);
         panel.addMouseMotionListener(mouseAdapter);
     }
+
 }
