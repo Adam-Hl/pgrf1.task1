@@ -24,48 +24,43 @@ public class Controller2D {
     }
 
     private void initListeners() {
-        // Listener na kliknutí myší
-//        panel.addMouseListener(new  MouseAdapter() {
-//            @Override
-//            // MouseEvent je "kurzor samotný"
-//            public void mousePressed(MouseEvent e) {
-//                panel.getRaster().setPixel(e.getX(), e.getY(), 0xffff00);
-//                panel.repaint();
-//            }
-//        });
-//        // horizontální přímka
-//        panel.addKeyListener(new  KeyAdapter() {
-//            public void keyPressed(KeyEvent e) {
-//                if (e.getKeyCode() == KeyEvent.VK_L) {
-//                    for (int n = 0; n <= 100; n++) {
-//                        panel.getRaster().setPixel(50+n, 50, 0xffff00);
-//                    }
-//                    panel.repaint();
-//                }
-//            }
-//        });
+
         // pomocí lineRasterizeru vykreslí přímku pomocí pružného tažení myší
         // MouseAdapter je třída, která implementuje MouseListener a MouseMotionListener
         MouseAdapter mouseAdapter = new MouseAdapter() {
             private int startX;
             private int startY;
-            private boolean dragging;
+            private boolean drawing = false; // zda se kreslí polygon a pohybuje se myší
+            private Polygon polygon;
 
             // začátek tažení myší
             @Override
             public void mousePressed(MouseEvent e) {
-                startX = e.getX();
-                startY = e.getY();
-                dragging = true;
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    if (!drawing) {
+                        // levé tlačítko myši začne kreslit polygon
+                        startX = e.getX();
+                        startY = e.getY();
+                        // vytvoření nového polygonu
+                        polygon = new Polygon();
+                        polygon.addPoint(new Point(startX, startY));
+                        drawing = true;
+                    }
+                } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    // pravé tlačítko myši ukončí kreslení polygonu
+                    if (drawing) {
+                        drawing = false;
+                        ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
+                    }
+                }
             }
 
-            // kdyý se myš pohybuje tak se vykreslí přímka od startovního bodu po aktuální pozici myši
+            // když se myš pohybuje tak se vykreslí přímka od startovního bodu po aktuální pozici myši
             @Override
-            public void mouseDragged(MouseEvent e) {
-                if (!dragging) {
+            public void mouseMoved(MouseEvent e) {
+                if (!drawing) {
                     return;
                 }
-
                 // pouze animace přímky při tažení myší
                 ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
                 lineRasterizer.rasterize(startX, startY, e.getX(), e.getY());
@@ -75,11 +70,12 @@ public class Controller2D {
             // konec tažení myší
             @Override
             public void mouseReleased(MouseEvent e) {
-                dragging = false;
+                if (drawing) {
+                    startX = e.getX();
+                    startY = e.getY();
+                }
 
                 // přidání polygonu do seznamu polygonů a překreslení všech polygonů
-                Polygon polygon = new Polygon();
-                polygon.addPoint(new Point(startX, startY));
                 polygon.addPoint(new Point(e.getX(), e.getY()));
                 ((RasterBufferedImage)panel.getRaster()).addPolygon(polygon);
                 ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
