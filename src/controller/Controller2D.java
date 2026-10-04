@@ -32,8 +32,6 @@ public class Controller2D {
             private int startY;
             private boolean drawing = false; // zda se kreslí polygon a pohybuje se myší
             private boolean movingPoint = false; // zda se přesouvá bod polygonu
-            Point closestPoint;
-            double closestDistance;
 
             // začátek tažení myší
             @Override
@@ -67,26 +65,30 @@ public class Controller2D {
                         ((RasterBufferedImage)panel.getRaster()).getPolygons().get(((RasterBufferedImage)panel.getRaster()).getPolygons().size() - 1).setClosed(true);
                         ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
                         panel.repaint();
+                    } else {
+                        // dvojité kliknutí pravým tlačítkem myši odstraní nejbližší bod polygonu
+                        if (e.getClickCount() == 2) {
+                            Point closestPoint = findClosestPoint(e.getX(), e.getY());
+                            for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
+                                if (polygon.getPoints().contains(closestPoint)) {
+                                    polygon.getPoints().remove(closestPoint);
+                                    ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
+                                    panel.repaint();
+                                }
+                            }
+                        }
                     }
                 } else if (e.getButton() == MouseEvent.BUTTON2) {
                     // prostřední tlačítko myši interaguje s bodem polygonu
                     movingPoint = true;
-                    closestDistance = Double.MAX_VALUE;
-                    // hledání nejbližšího bodu polygonu k aktuální pozici myši pomocí Pythagorovy věty
-                    for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
-                        for (Point point : polygon.getPoints()) {
-                            double distance = Math.sqrt(Math.pow(point.getX() - e.getX(), 2) + Math.pow(point.getY() - e.getY(), 2));
-                            if (distance < closestDistance) {
-                                closestDistance = distance;
-                                closestPoint = point;
-                            }
-                        }
-                    }
-                    // dvojité kliknutí prostředním tlačítkem myši odstraní nejbližší bod polygonu
-                    if (e.getClickCount() == 2 && closestPoint != null) {
+                    if (e.getClickCount() == 2) {
+                        // dvojité kliknutí prostředním tlačítkem myši přidá nový bod do polygonu na aktuální pozici myši a spojí ho s nejbližšímy body polygonu
+                        Point closestPoint = findClosestPoint(e.getX(), e.getY());
                         for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
-                            if (polygon.getPoints().contains(closestPoint)) {
-                                polygon.getPoints().remove(closestPoint);
+                            if (closestPoint != null && polygon.getPoints().contains(closestPoint)) {
+                                // vložení nového bodu mezi nejbližší bod a jeho následující bod v polygonu
+                                int index = polygon.getPoints().indexOf(closestPoint);
+                                polygon.getPoints().add(index + 1, new Point(e.getX(), e.getY()));
                                 ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
                                 panel.repaint();
                             }
@@ -110,6 +112,7 @@ public class Controller2D {
             // když se myš pohybuje a je stisknuté prostřední tlačítko myši, přesune se nejbližší bod polygonu na aktuální pozici myši
             @Override
             public void mouseDragged(MouseEvent e) {
+                Point closestPoint = findClosestPoint(e.getX(), e.getY());
                 if (movingPoint && closestPoint != null) {
                     closestPoint.setX(e.getX());
                     closestPoint.setY(e.getY());
@@ -142,6 +145,21 @@ public class Controller2D {
             }
         };
         panel.addKeyListener(keyListener);
+    }
+    private Point findClosestPoint(int mouseX, int mouseY) {
+        double closestDistance = Double.MAX_VALUE;
+        Point closestPoint = null;
+        // hledání nejbližšího bodu polygonu k aktuální pozici myši pomocí Pythagorovy věty
+        for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
+            for (Point point : polygon.getPoints()) {
+                double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestPoint = point;
+                }
+            }
+        }
+        return closestPoint;
     }
 
 }
