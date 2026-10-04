@@ -1,17 +1,20 @@
 package controller;
 
-import polygon.Point;
-import polygon.Polygon;
+import shapes.Point;
+import shapes.Polygon;
 import raster.RasterBufferedImage;
 import rasterize.LineRasterizer;
 import rasterize.LineRasterizerTrivial;
+import shapes.Segment;
 import view.Panel;
 
 import java.awt.event.*;
+import java.util.Iterator;
 
 public class Controller2D {
     private final Panel panel;
     private final LineRasterizer lineRasterizer;
+    private final String[] mode = {"segment"}; // defaultní režim je segment
 
     public Controller2D(Panel panel) {
         this.panel = panel;
@@ -37,70 +40,110 @@ public class Controller2D {
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     if (!drawing) {
-                        // levé tlačítko myši začne kreslit polygon
+                        // levé tlačítko myši začne kreslit tvar
                         startX = e.getX();
                         startY = e.getY();
-                        // vytvoření nového polygonu
-                        Polygon polygon = new Polygon();
-                        polygon.addPoint(new Point(startX, startY));
-                        // přidání polygonu do rasteru, pokud ještě není přidán
-                        if (!((RasterBufferedImage)panel.getRaster()).getPolygons().contains(polygon)) {
-                            ((RasterBufferedImage) panel.getRaster()).addPolygon(polygon);
+                        if (mode[0].equals("segment")) {
+                            // vytvoření nového segmentu
+                            Segment segment = new Segment(new Point(startX, startY), new Point(startX, startY));
+                            ((RasterBufferedImage) panel.getRaster()).addSegment(segment);
+                        } else if (mode[0].equals("polygon")) {
+                            // vytvoření nového polygonu
+                            Polygon polygon = new Polygon();
+                            polygon.addPoint(new Point(startX, startY));
+                            // přidání polygonu do rasteru, pokud ještě není přidán
+                            if (!((RasterBufferedImage) panel.getRaster()).getPolygons().contains(polygon)) {
+                                ((RasterBufferedImage) panel.getRaster()).addPolygon(polygon);
+                            }
                         }
                         drawing = true;
                     } else {
                         // přenastavení startovního bodu na aktuální pozici myši pro animaci
                         startX = e.getX();
                         startY = e.getY();
-                        // levé tlačítko myši přidá bod do polygonu
-                        ((RasterBufferedImage)panel.getRaster()).getPolygons().get(((RasterBufferedImage)panel.getRaster()).getPolygons().size() - 1).addPoint(new Point(e.getX(), e.getY()));
-                        ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
+                        if (mode[0].equals("segment")) {
+                            // aktualizace koncového bodu segmentu na aktuální pozici myši
+                            ((RasterBufferedImage) panel.getRaster()).getSegments().get(((RasterBufferedImage) panel.getRaster()).getSegments().size() - 1).setEnd(new Point(e.getX(), e.getY()));
+                            drawing = false; // segment je dokončen, takže se kreslení ukončí
+                        } else if (mode[0].equals("polygon")) {
+                            // levé tlačítko myši přidá bod do polygonu
+                            ((RasterBufferedImage) panel.getRaster()).getPolygons().get(((RasterBufferedImage) panel.getRaster()).getPolygons().size() - 1).addPoint(new Point(e.getX(), e.getY()));
+                        }
+                        ((RasterBufferedImage) panel.getRaster()).repaintShapes();
                         panel.repaint();
                     }
                 } else if (e.getButton() == MouseEvent.BUTTON3) {
                     // pravé tlačítko myši ukončí kreslení polygonu a uzavře ho
                     if (drawing) {
                         drawing = false;
-                        ((RasterBufferedImage)panel.getRaster()).getPolygons().get(((RasterBufferedImage)panel.getRaster()).getPolygons().size() - 1).setClosed(true);
-                        ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
+                        if (mode[0].equals("polygon")) {
+                            // uzavření polygonu
+                            ((RasterBufferedImage)panel.getRaster()).getPolygons().get(((RasterBufferedImage)panel.getRaster()).getPolygons().size() - 1).setClosed(true);
+                            ((RasterBufferedImage)panel.getRaster()).repaintShapes();
+                        }
                         panel.repaint();
                     } else {
-                        // dvojité kliknutí pravým tlačítkem myši odstraní nejbližší bod polygonu
+                        // dvojité kliknutí pravým tlačítkem myši odstraní nejbližší bod tvaru
                         if (e.getClickCount() == 2) {
                             Point closestPoint = findClosestPoint(e.getX(), e.getY());
-                            for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
-                                if (polygon.getPoints().contains(closestPoint)) {
-                                    polygon.getPoints().remove(closestPoint);
-                                    ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
-                                    panel.repaint();
+                            // použití iteratoru pro odstranění bodu z polygonu nebo segmentu, aby se předešlo ConcurrentModificationException (odstranění prvku z kolekce během iterace zde i uvnitř metody repaintShapes())
+                            if (mode[0].equals("polygon")) {
+                                Iterator<Polygon> iterator = ((RasterBufferedImage)panel.getRaster()).getPolygons().iterator();
+                                while (iterator.hasNext()) {
+                                    Polygon polygon = iterator.next();
+                                    if (closestPoint != null && polygon.getPoints().contains(closestPoint)) {
+                                        polygon.getPoints().remove(closestPoint);
+                                        if (polygon.getPoints().size() < 3) {
+                                            // odstranění polygonu, pokud má méně než 3 body
+                                            iterator.remove();
+                                        }
+                                        ((RasterBufferedImage)panel.getRaster()).repaintShapes();
+                                        panel.repaint();
+                                    }
+                                }
+                            } else if (mode[0].equals("segment")) {
+                                Iterator<Segment> iterator = ((RasterBufferedImage)panel.getRaster()).getSegments().iterator();
+                                while (iterator.hasNext()) {
+                                    Segment segment = iterator.next();
+                                    if (closestPoint != null && segment.getPoints().contains(closestPoint)) {
+                                        segment.getPoints().remove(closestPoint);
+                                        if (segment.getPoints().size() < 2) {
+                                            // odstranění segmentu, pokud má méně než 2 body
+                                            iterator.remove();
+                                        }
+                                        ((RasterBufferedImage)panel.getRaster()).repaintShapes();
+                                        panel.repaint();
+                                    }
                                 }
                             }
                         }
                     }
                 } else if (e.getButton() == MouseEvent.BUTTON2) {
-                    // prostřední tlačítko myši interaguje s bodem polygonu
+                    // prostřední tlačítko myši interaguje s bodem
                     movingPoint = true;
                     closestPoint = findClosestPoint(e.getX(), e.getY());
-                    if (e.getClickCount() == 2) {
-                        // dvojité kliknutí prostředním tlačítkem myši přidá nový bod do polygonu na aktuální pozici myši a spojí ho s nejbližšímy body polygonu
-                        Point closestPoint = findClosestPoint(e.getX(), e.getY());
-                        Point secondClosestPoint = findSecondClosestPoint(e.getX(), e.getY(), closestPoint);
-                        for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
-                            if (closestPoint != null && polygon.getPoints().contains(closestPoint)) {
-                                // vložení nového bodu mezi nejbližší bod a druhý nejbližší bod polygonu
-                                int indexClosest = polygon.getPoints().indexOf(closestPoint);
-                                int indexSecondClosest = polygon.getPoints().indexOf(secondClosestPoint);
-                                // pokud je nejbližší bod poslední bod v polygonu, přidá se nový bod na konec polygonu
-                                if (indexClosest == polygon.getPoints().size() -1 || indexSecondClosest == polygon.getPoints().size() -1) {
-                                    polygon.getPoints().add(new Point(e.getX(), e.getY()));
-                                    // jinak se nový bod přidá mezi nejbližší bod a druhý nejbližší bod polygonu podle jejich indexů
-                                } else if (indexClosest < indexSecondClosest ) {
-                                    polygon.getPoints().add(indexClosest + 1, new Point(e.getX(), e.getY()));
-                                } else {
-                                    polygon.getPoints().add(indexSecondClosest + 1, new Point(e.getX(), e.getY()));
+                    if (mode[0].equals("polygon")) {
+                        if (e.getClickCount() == 2) {
+                            // dvojité kliknutí prostředním tlačítkem myši přidá nový bod do polygonu na aktuální pozici myši a spojí ho s nejbližšímy body polygonu
+                            Point closestPoint = findClosestPoint(e.getX(), e.getY());
+                            Point secondClosestPoint = findSecondClosestPoint(e.getX(), e.getY(), closestPoint);
+                            for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
+                                if (closestPoint != null && polygon.getPoints().contains(closestPoint)) {
+                                    // vložení nového bodu mezi nejbližší bod a druhý nejbližší bod polygonu
+                                    int indexClosest = polygon.getPoints().indexOf(closestPoint);
+                                    int indexSecondClosest = polygon.getPoints().indexOf(secondClosestPoint);
+                                    // pokud je nejbližší bod poslední bod v polygonu, přidá se nový bod na konec polygonu
+                                    if (indexClosest == polygon.getPoints().size() -1 || indexSecondClosest == polygon.getPoints().size() -1) {
+                                        polygon.getPoints().add(new Point(e.getX(), e.getY()));
+                                        // jinak se nový bod přidá mezi nejbližší bod a druhý nejbližší bod polygonu podle jejich indexů
+                                    } else if (indexClosest < indexSecondClosest ) {
+                                        polygon.getPoints().add(indexClosest + 1, new Point(e.getX(), e.getY()));
+                                    } else {
+                                        polygon.getPoints().add(indexSecondClosest + 1, new Point(e.getX(), e.getY()));
+                                    }
+                                    ((RasterBufferedImage)panel.getRaster()).repaintShapes();
+                                    panel.repaint();
                                 }
-                                ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
-                                panel.repaint();
                             }
                         }
                     }
@@ -114,7 +157,7 @@ public class Controller2D {
                     return;
                 }
                 // pouze animace přímky při tažení myší
-                ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
+                ((RasterBufferedImage)panel.getRaster()).repaintShapes();
                 lineRasterizer.rasterize(startX, startY, e.getX(), e.getY());
                 panel.repaint();
             }
@@ -125,31 +168,50 @@ public class Controller2D {
                 if (movingPoint && closestPoint != null) {
                     closestPoint.setX(e.getX());
                     closestPoint.setY(e.getY());
-                    ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
+                    ((RasterBufferedImage)panel.getRaster()).repaintShapes();
                     panel.repaint();
                 }
+            }
+
+            // když se kolečko myši uvolní, ukončí se přesouvání bodu polygonu
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                movingPoint = false;
             }
         };
         // přidání listenerů do panelu uvnitř MouseAdapteru, aby se mohlo reagovat na pohyb myši a kliknutí
         panel.addMouseListener(mouseAdapter);
         panel.addMouseMotionListener(mouseAdapter);
 
-        // přidání KeyListeneru pro stisknutí klávesy C, která vymaže raster a všechny polygony
         KeyListener keyListener = new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_C) {
-                    // kontrola; print všech polygonů v rasteru
+                    // přidání KeyListeneru pro stisknutí klávesy C, která vymaže raster a všechny polygony
+                    // kontrola; print všech tvarů v rasteru
                     for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
                         System.out.print("\nPolygon: ");
                         for (Point point : polygon.getPoints()) {
                             System.out.print("Point: (" + point.getX() + ", " + point.getY() + ") ");
                         }
                     }
-                    // stisknutí klávesy C vymaže raster a všechny polygony
+                    for (Segment segment : ((RasterBufferedImage)panel.getRaster()).getSegments()) {
+                        System.out.print("\nSegment: Start: (" + segment.getStart().getX() + ", " + segment.getStart().getY() + ") End: (" + segment.getEnd().getX() + ", " + segment.getEnd().getY() + ")");
+                    }
+                    // stisknutí klávesy C vymaže raster a všechny tvary
                     ((RasterBufferedImage)panel.getRaster()).getPolygons().clear();
+                    ((RasterBufferedImage)panel.getRaster()).getSegments().clear();
                     panel.getRaster().clear();
                     panel.repaint();
+                }
+                if (e.getKeyCode() == KeyEvent.VK_X) {
+                    // přidání KeyListeneru pro stisknutí klávesy X, která změní režim mezi segmentem a polygonem
+                    if (mode[0].equals("polygon")) {
+                        mode[0] = "segment";
+                    } else {
+                        mode[0] = "polygon";
+                    }
+                    System.out.println("Mode changed to: " + mode[0]);
                 }
             }
         };
@@ -158,13 +220,25 @@ public class Controller2D {
     private Point findClosestPoint(int mouseX, int mouseY) {
         double closestDistance = Double.MAX_VALUE;
         Point closestPoint = null;
-        // hledání nejbližšího bodu polygonu k aktuální pozici myši pomocí Pythagorovy věty
-        for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
-            for (Point point : polygon.getPoints()) {
-                double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    closestPoint = point;
+        // hledání nejbližšího bodu tvaru k aktuální pozici myši pomocí Pythagorovy věty
+        if (mode[0].equals("segment")) {
+            for (Segment segment : ((RasterBufferedImage)panel.getRaster()).getSegments()) {
+                for (Point point : segment.getPoints()) {
+                    double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestPoint = point;
+                    }
+                }
+            }
+        } else if (mode[0].equals("polygon")) {
+            for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
+                for (Point point : polygon.getPoints()) {
+                    double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestPoint = point;
+                    }
                 }
             }
         }

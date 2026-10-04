@@ -1,4 +1,4 @@
-package polygon;
+package shapes;
 
 import java.util.ArrayList;
 
