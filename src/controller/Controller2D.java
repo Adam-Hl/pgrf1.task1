@@ -16,8 +16,6 @@ public class Controller2D {
     public Controller2D(Panel panel) {
         this.panel = panel;
 
-        panel.getRaster().setPixel(50, 50, 0xffff00);
-
         this.lineRasterizer = new LineRasterizerTrivial(panel.getRaster());
 
         initListeners();
@@ -32,6 +30,7 @@ public class Controller2D {
             private int startY;
             private boolean drawing = false; // zda se kreslí polygon a pohybuje se myší
             private boolean movingPoint = false; // zda se přesouvá bod polygonu
+            private Point closestPoint; // nejbližší bod polygonu k kliknuté pozici myši
 
             // začátek tažení myší
             @Override
@@ -81,6 +80,7 @@ public class Controller2D {
                 } else if (e.getButton() == MouseEvent.BUTTON2) {
                     // prostřední tlačítko myši interaguje s bodem polygonu
                     movingPoint = true;
+                    closestPoint = findClosestPoint(e.getX(), e.getY());
                     if (e.getClickCount() == 2) {
                         // dvojité kliknutí prostředním tlačítkem myši přidá nový bod do polygonu na aktuální pozici myši a spojí ho s nejbližšímy body polygonu
                         Point closestPoint = findClosestPoint(e.getX(), e.getY());
@@ -122,7 +122,6 @@ public class Controller2D {
             // když se myš pohybuje a je stisknuté prostřední tlačítko myši, přesune se nejbližší bod polygonu na aktuální pozici myši
             @Override
             public void mouseDragged(MouseEvent e) {
-                Point closestPoint = findClosestPoint(e.getX(), e.getY());
                 if (movingPoint && closestPoint != null) {
                     closestPoint.setX(e.getX());
                     closestPoint.setY(e.getY());
