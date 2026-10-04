@@ -22,38 +22,64 @@ public class Controller2D {
 
     private void initListeners() {
         // Listener na kliknutí myší
-        panel.addMouseListener(new  MouseAdapter() {
+//        panel.addMouseListener(new  MouseAdapter() {
+//            @Override
+//            // MouseEvent je "kurzor samotný"
+//            public void mousePressed(MouseEvent e) {
+//                panel.getRaster().setPixel(e.getX(), e.getY(), 0xffff00);
+//                panel.repaint();
+//            }
+//        });
+//        // horizontální přímka
+//        panel.addKeyListener(new  KeyAdapter() {
+//            public void keyPressed(KeyEvent e) {
+//                if (e.getKeyCode() == KeyEvent.VK_L) {
+//                    for (int n = 0; n <= 100; n++) {
+//                        panel.getRaster().setPixel(50+n, 50, 0xffff00);
+//                    }
+//                    panel.repaint();
+//                }
+//            }
+//        });
+        // pomocí lineRasterizeru vykreslí přímku pomocí pružného tažení myší
+        // MouseAdapter je třída, která implementuje MouseListener a MouseMotionListener
+        MouseAdapter mouseAdapter = new MouseAdapter() {
+            private int startX;
+            private int startY;
+            private boolean dragging;
+
+            // začátek tažení myší
             @Override
-            // MouseEvent je "kurzor samotný"
             public void mousePressed(MouseEvent e) {
-                panel.getRaster().setPixel(e.getX(), e.getY(), 0xffff00);
-                panel.repaint();
-            }
-        });
-        // horizontální přímka
-        panel.addKeyListener(new  KeyAdapter() {
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_L) {
-                    for (int n = 0; n <= 100; n++) {
-                        panel.getRaster().setPixel(50+n, 50, 0xffff00);
-                    }
-                    panel.repaint();
-                }
-            }
-        });
-        // pomocí lineRasterizeru vykreslí přímku ze středu k myši během posouvání
-        panel.addMouseMotionListener(new MouseAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                int startX = panel.getWidth()/2;
-                int startY = panel.getHeight()/2;
-                int endX = e.getX();
-                int endY = e.getY();
+                startX = e.getX();
+                startY = e.getY();
+                dragging = true;
 
                 panel.getRaster().clear();
-                lineRasterizer.rasterize(startX, startY, endX, endY);
+                lineRasterizer.rasterize(startX, startY, startX, startY);
                 panel.repaint();
             }
-        });
+
+            // kdyý se myš pohybuje tak se vykreslí přímka od startovního bodu po aktuální pozici myši
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (!dragging) {
+                    return;
+                }
+
+                panel.getRaster().clear();
+                lineRasterizer.rasterize(startX, startY, e.getX(), e.getY());
+                panel.repaint();
+            }
+
+            // konec tažení myší
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                dragging = false;
+            }
+        };
+
+        panel.addMouseListener(mouseAdapter);
+        panel.addMouseMotionListener(mouseAdapter);
     }
 }
