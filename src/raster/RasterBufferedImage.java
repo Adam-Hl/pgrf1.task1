@@ -59,6 +59,11 @@ public class RasterBufferedImage implements Raster{
         clear();
         for (Polygon polygon : polygons) {
             ArrayList<Point> points = polygon.getPoints();
+            if (points.isEmpty()) {
+                // odstranění polygonu, pokud má méně než 1 bod
+                polygons.remove(polygon);
+                continue;
+            }
             for (int i = 0; i < points.size(); i++) {
                 Point p1 = points.get(i);
                 Point p2;
