@@ -61,15 +61,22 @@ public class RasterBufferedImage implements Raster{
             ArrayList<Point> points = polygon.getPoints();
             for (int i = 0; i < points.size(); i++) {
                 Point p1 = points.get(i);
-                // modulo pro spojení posledního bodu s prvním
-                Point p2 = points.get((i + 1) % points.size());
+                Point p2;
+                if (polygon.isClosed()) {
+                    // modulo pro spojení posledního bodu s prvním pokud je polygon uzavřený
+                    p2 = points.get((i + 1) % points.size());
+                } else {
+                    if (i + 1 < points.size()) {
+                        p2 = points.get(i + 1);
+                    } else {
+                        break;
+                    }
+                }
                 // vykreslení čáry mezi body p1 a p2
-                new LineRasterizerTrivial(this).rasterize(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+                if (p2 != null) {
+                    new LineRasterizerTrivial(this).rasterize(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+                }
             }
         }
-    }
-
-    public void clearPolygons() {
-        polygons.clear();
     }
 }

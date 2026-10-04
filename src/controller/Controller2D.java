@@ -31,7 +31,6 @@ public class Controller2D {
             private int startX;
             private int startY;
             private boolean drawing = false; // zda se kreslí polygon a pohybuje se myší
-            private Polygon polygon;
 
             // začátek tažení myší
             @Override
@@ -42,15 +41,29 @@ public class Controller2D {
                         startX = e.getX();
                         startY = e.getY();
                         // vytvoření nového polygonu
-                        polygon = new Polygon();
+                        Polygon polygon = new Polygon();
                         polygon.addPoint(new Point(startX, startY));
+                        // přidání polygonu do rasteru, pokud ještě není přidán
+                        if (!((RasterBufferedImage)panel.getRaster()).getPolygons().contains(polygon)) {
+                            ((RasterBufferedImage) panel.getRaster()).addPolygon(polygon);
+                        }
                         drawing = true;
+                    } else {
+                        // přenastavení startovního bodu na aktuální pozici myši pro animaci
+                        startX = e.getX();
+                        startY = e.getY();
+                        // levé tlačítko myši přidá bod do polygonu
+                        ((RasterBufferedImage)panel.getRaster()).getPolygons().get(((RasterBufferedImage)panel.getRaster()).getPolygons().size() - 1).addPoint(new Point(e.getX(), e.getY()));
+                        ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
+                        panel.repaint();
                     }
                 } else if (e.getButton() == MouseEvent.BUTTON3) {
-                    // pravé tlačítko myši ukončí kreslení polygonu
+                    // pravé tlačítko myši ukončí kreslení polygonu a uzavře ho
                     if (drawing) {
                         drawing = false;
+                        ((RasterBufferedImage)panel.getRaster()).getPolygons().get(((RasterBufferedImage)panel.getRaster()).getPolygons().size() - 1).setClosed(true);
                         ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
+                        panel.repaint();
                     }
                 }
             }
@@ -66,24 +79,31 @@ public class Controller2D {
                 lineRasterizer.rasterize(startX, startY, e.getX(), e.getY());
                 panel.repaint();
             }
-
-            // konec tažení myší
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                if (drawing) {
-                    startX = e.getX();
-                    startY = e.getY();
-                }
-
-                // přidání polygonu do seznamu polygonů a překreslení všech polygonů
-                polygon.addPoint(new Point(e.getX(), e.getY()));
-                ((RasterBufferedImage)panel.getRaster()).addPolygon(polygon);
-                ((RasterBufferedImage)panel.getRaster()).repaintPolygons();
-            }
         };
-
+        // přidání listenerů do panelu uvnitř MouseAdapteru, aby se mohlo reagovat na pohyb myši a kliknutí
         panel.addMouseListener(mouseAdapter);
         panel.addMouseMotionListener(mouseAdapter);
+
+        // přidání KeyListeneru pro stisknutí klávesy C, která vymaže raster a všechny polygony
+        KeyListener keyListener = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_C) {
+                    // kontrola; print všech polygonů v rasteru
+                    for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
+                        System.out.print("\nPolygon: ");
+                        for (Point point : polygon.getPoints()) {
+                            System.out.print("Point: (" + point.getX() + ", " + point.getY() + ") ");
+                        }
+                    }
+                    // stisknutí klávesy C vymaže raster a všechny polygony
+                    ((RasterBufferedImage)panel.getRaster()).getPolygons().clear();
+                    panel.getRaster().clear();
+                    panel.repaint();
+                }
+            }
+        };
+        panel.addKeyListener(keyListener);
     }
 
 }

@@ -3,10 +3,12 @@ package polygon;
 import java.util.ArrayList;
 
 public class Polygon {
-    private ArrayList<Point> points;
+    private final ArrayList<Point> points;
+    private boolean isClosed;
 
     public Polygon() {
         points = new ArrayList<>();
+        isClosed = false;
     }
 
 
@@ -16,5 +18,13 @@ public class Polygon {
 
     public ArrayList<Point> getPoints() {
         return points;
+    }
+
+    public boolean isClosed() {
+        return isClosed;
+    }
+
+    public void setClosed(boolean closed) {
+        isClosed = closed;
     }
 }
