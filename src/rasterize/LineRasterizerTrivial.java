@@ -23,7 +23,7 @@ public class LineRasterizerTrivial extends LineRasterizer{
 
         // vykreslování podle primární osy X
         if (Math.abs(x2 - x1) >= Math.abs(y2 - y1)) {
-            // prohození bodů, aby se předešlo záporným hodnotám a aby se čára správně vykreslovala i v 2. a 3. kvadrantu
+            // prohození bodů, aby se předešlo záporným hodnotám a aby se úsečka správně vykreslovala i v 2. a 3. kvadrantu
             if (x1 > x2) {
                 int temp = x1;
                 x1 = x2;
