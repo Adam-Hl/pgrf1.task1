@@ -1,5 +1,7 @@
 package controller;
 
+import raster.Raster;
+import rasterize.PolygonRasterizer;
 import shapes.Point;
 import shapes.Polygon;
 import raster.RasterBufferedImage;
@@ -15,9 +17,12 @@ public class Controller2D {
     private final Panel panel;
     private final LineRasterizer lineRasterizer;
     private final String[] mode = {"segment"}; // defaultní režim je segment
+                                                //TODO: předělat mod select na enum
+    private final Raster raster; // TODO: implementovat interface Raster
 
     public Controller2D(Panel panel) {
         this.panel = panel;
+        this.raster = (RasterBufferedImage) panel.getRaster(); // TODO: implementovat
 
         this.lineRasterizer = new LineRasterizerTrivial(panel.getRaster());
 
@@ -38,6 +43,7 @@ public class Controller2D {
             // začátek tažení myší
             @Override
             public void mousePressed(MouseEvent e) {
+                double maxDistanceDragAndDelete = 20; // maximální vzdálenost pro nazelezení vrcholu pro pohyb a mazání
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     if (!drawing) {
                         // levé tlačítko myši začne kreslit tvar
@@ -78,14 +84,20 @@ public class Controller2D {
                         drawing = false;
                         if (mode[0].equals("polygon")) {
                             // uzavření polygonu
-                            ((RasterBufferedImage)panel.getRaster()).getPolygons().get(((RasterBufferedImage)panel.getRaster()).getPolygons().size() - 1).setClosed(true);
+                            Polygon polygon = ((RasterBufferedImage) panel.getRaster()).getPolygons().get(((RasterBufferedImage) panel.getRaster()).getPolygons().size() - 1);
+                            if (polygon.getPoints().size() > 2) {
+                                polygon.setClosed(true);
+                            } else {
+                                // odstranění polygonu, pokud má méně než 3 body (během kreslení, nikoliv při mazání bodů)
+                                ((RasterBufferedImage) panel.getRaster()).getPolygons().remove(polygon);
+                            }
                             ((RasterBufferedImage)panel.getRaster()).repaintShapes();
                         }
                         panel.repaint();
                     } else {
                         // dvojité kliknutí pravým tlačítkem myši odstraní nejbližší bod tvaru
                         if (e.getClickCount() == 2) {
-                            Point closestPoint = findClosestPoint(e.getX(), e.getY());
+                            Point closestPoint = findClosestPoint(e.getX(), e.getY(), maxDistanceDragAndDelete);
                             // použití iteratoru pro odstranění bodu z polygonu nebo segmentu, aby se předešlo ConcurrentModificationException (odstranění prvku z kolekce během iterace zde i uvnitř metody repaintShapes())
                             if (mode[0].equals("polygon")) {
                                 Iterator<Polygon> iterator = ((RasterBufferedImage)panel.getRaster()).getPolygons().iterator();
@@ -121,11 +133,11 @@ public class Controller2D {
                 } else if (e.getButton() == MouseEvent.BUTTON2) {
                     // prostřední tlačítko myši interaguje s bodem
                     movingPoint = true;
-                    closestPoint = findClosestPoint(e.getX(), e.getY());
+                    closestPoint = findClosestPoint(e.getX(), e.getY(), maxDistanceDragAndDelete);
                     if (mode[0].equals("polygon")) {
                         if (e.getClickCount() == 2) {
                             // dvojité kliknutí prostředním tlačítkem myši přidá nový bod do polygonu na aktuální pozici myši a spojí ho s nejbližšímy body polygonu
-                            Point closestPoint = findClosestPoint(e.getX(), e.getY());
+                            Point closestPoint = findClosestPoint(e.getX(), e.getY(), Double.MAX_VALUE);
                             Point secondClosestPoint = findSecondClosestPoint(e.getX(), e.getY(), closestPoint);
                             for (Polygon polygon : ((RasterBufferedImage)panel.getRaster()).getPolygons()) {
                                 if (closestPoint != null && polygon.getPoints().contains(closestPoint)) {
@@ -217,8 +229,8 @@ public class Controller2D {
         };
         panel.addKeyListener(keyListener);
     }
-    private Point findClosestPoint(int mouseX, int mouseY) {
-        double closestDistance = Double.MAX_VALUE;
+    private Point findClosestPoint(int mouseX, int mouseY, double maxDistance) {
+        double closestDistance = maxDistance;
         Point closestPoint = null;
         // hledání nejbližšího bodu tvaru k aktuální pozici myši pomocí Pythagorovy věty
         if (mode[0].equals("segment")) {

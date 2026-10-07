@@ -1,5 +1,7 @@
 package raster;
 
+import rasterize.LineRasterizer;
+import rasterize.PolygonRasterizer;
 import shapes.Point;
 import shapes.Polygon;
 import rasterize.LineRasterizerTrivial;
@@ -68,7 +70,9 @@ public class RasterBufferedImage implements Raster{
     // metoda pro překreslení všech tvarů
     public void repaintShapes() {
         clear();
-        // použití iteratoru pro bezpečné odstranění polygonů a segmentů během iterace, aby se předešlo ConcurrentModificationException
+        LineRasterizer lineRasterizer = new LineRasterizerTrivial(this);
+        PolygonRasterizer polygonRasterizer = new PolygonRasterizer(lineRasterizer);
+        // použití iteratoru pro bezpečné odstranění polygonů během iterace, aby se předešlo ConcurrentModificationException
         // iterátor je objekt, který umožňuje bezpečně procházet kolekci a odstraňovat prvky během iterace
         Iterator<Polygon> polygonIterator = polygons.iterator();
         while (polygonIterator.hasNext()) {
@@ -79,24 +83,7 @@ public class RasterBufferedImage implements Raster{
                 polygonIterator.remove();
                 continue;
             }
-            for (int i = 0; i < points.size(); i++) {
-                Point p1 = points.get(i);
-                Point p2;
-                if (polygon.isClosed()) {
-                    // modulo pro spojení posledního bodu s prvním pokud je polygon uzavřený
-                    p2 = points.get((i + 1) % points.size());
-                } else {
-                    if (i + 1 < points.size()) {
-                        p2 = points.get(i + 1);
-                    } else {
-                        break;
-                    }
-                }
-                // vykreslení čáry mezi body p1 a p2
-                if (p2 != null) {
-                    new LineRasterizerTrivial(this).rasterize(p1.getX(), p1.getY(), p2.getX(), p2.getY());
-                }
-            }
+            polygonRasterizer.rasterize(polygon);
         }
         Iterator<Segment> iterator = segments.iterator();
         while (iterator.hasNext()) {
@@ -106,7 +93,7 @@ public class RasterBufferedImage implements Raster{
                 iterator.remove();
                 continue;
             }
-            new LineRasterizerTrivial(this).rasterize(segment.getStart().getX(), segment.getStart().getY(), segment.getEnd().getX(), segment.getEnd().getY());
+            lineRasterizer.rasterize(segment.getStart().getX(), segment.getStart().getY(), segment.getEnd().getX(), segment.getEnd().getY());
         }
     }
 }
