@@ -1,20 +1,14 @@
 package rasterize;
 
-import raster.Raster;
 import shapes.Point;
 import shapes.Polygon;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class PolygonRasterizer{
-    private LineRasterizer lineRasterizer;
+    private final LineRasterizer lineRasterizer;
 
     public PolygonRasterizer(LineRasterizer lineRasterizer) {
-        this.lineRasterizer = lineRasterizer;
-    }
-
-    public void setLineRasterizer(LineRasterizer lineRasterizer) {
         this.lineRasterizer = lineRasterizer;
     }
 

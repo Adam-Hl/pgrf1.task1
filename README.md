@@ -6,3 +6,4 @@
 - Stiskněte klávesu "X" pro přepnutí režimu mezi úsečkou a polygonem. (Defaultně je nastaven režim "Segment".)
 - Držením koleska myši můžete posouvat body.
 - Dvojitým kliknutím pravým tlačítkem myši na bod můžete odstranit bod z n-úhelníku a úsečku.
+- Dvojitým zmáčknutím kolečka myši v blízkosti hrany n-úhelníku můžete přidat nový bod na hranu n-úhelníku.
