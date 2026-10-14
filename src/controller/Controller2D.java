@@ -1,5 +1,7 @@
 package controller;
 
+import fill.Filler;
+import fill.SeedFill;
 import raster.Raster;
 import scene.Scene;
 import scene.SceneRenderer;
@@ -19,10 +21,12 @@ public class Controller2D {
     private final Raster raster;
     private final Scene scene;
     private final SceneRenderer sceneRenderer;
+    private final Filler filler;
 
     private enum Mode {
     SEGMENT,
-    POLYGON
+    POLYGON,
+    Fill
     }
     private Mode mode = Mode.SEGMENT; // výchozí režim
 
@@ -32,6 +36,7 @@ public class Controller2D {
         this.raster = panel.getRaster();
         this.scene = new Scene();
         this.sceneRenderer = new SceneRenderer(scene, raster);
+        this.filler = new SeedFill();
         initListeners();
     }
 
@@ -67,6 +72,8 @@ public class Controller2D {
                             if (!scene.getPolygons().contains(polygon)) {
                                 scene.addPolygon(polygon);
                             }
+                        } else if (mode == Mode.Fill) {
+
                         }
                         drawing = true;
                     } else {
