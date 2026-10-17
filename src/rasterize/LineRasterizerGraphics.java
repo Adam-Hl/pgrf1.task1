@@ -9,7 +9,7 @@ import java.awt.*;
 public class LineRasterizerGraphics extends LineRasterizer {
 
     public LineRasterizerGraphics(Raster raster) {
-        super(raster);
+        super(raster, Color.BLACK.getRGB());
     }
 
     @Override

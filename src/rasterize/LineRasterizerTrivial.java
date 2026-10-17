@@ -4,8 +4,8 @@ import raster.Raster;
 
 // resterizer pro přímku, který využívá vlastní algoritmus
 public class LineRasterizerTrivial extends LineRasterizer{
-    public LineRasterizerTrivial(Raster raster) {
-        super(raster);
+    public LineRasterizerTrivial(Raster raster, int color) {
+        super(raster, color);
     }
 
     @Override
@@ -17,7 +17,7 @@ public class LineRasterizerTrivial extends LineRasterizer{
 
         // samostatný bod
         if (x2 - x1 == 0 && y2 - y1 == 0) {
-            raster.setPixel(x1, y1, 0x00ff00);
+            raster.setPixel(x1, y1, color);
             return;
         }
 
@@ -38,7 +38,7 @@ public class LineRasterizerTrivial extends LineRasterizer{
             // for cyklus pro vykreslení
             for (int x = x1; x <= x2; x++) {
                 int y = (int) (y1 + k * (x - x1));
-                raster.setPixel(x, y, 0x00ff00);
+                raster.setPixel(x, y, color);
             }
         }
         // vykreslování podle primární osy Y – pro vysoké k
@@ -57,7 +57,7 @@ public class LineRasterizerTrivial extends LineRasterizer{
 
             for (int y = y1; y <= y2; y++) {
                 int x = Math.round(x1 + k * (y - y1));
-                raster.setPixel(x, y, 0x00ff00);
+                raster.setPixel(x, y, color);
             }
         }
     }

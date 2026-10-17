@@ -22,21 +22,25 @@ public class Controller2D {
     private final Scene scene;
     private final SceneRenderer sceneRenderer;
     private final Filler filler;
+    private final FindClosest findClosest = new FindClosest();
 
-    private enum Mode {
+    enum Mode {
     SEGMENT,
     POLYGON,
-    Fill
+    FILL
     }
     private Mode mode = Mode.SEGMENT; // výchozí režim
 
     public Controller2D(Panel panel) {
         this.panel = panel;
-        this.lineRasterizer = new LineRasterizerTrivial(panel.getRaster());
+        int fillColor = 0x4eb896; // barva pro vyplnění
+        int color = 0xc93b2b; // barva pro vykreslování tvarů
+        int backgroundColor = 0x000000; // barva pozadí
+        this.lineRasterizer = new LineRasterizerTrivial(panel.getRaster(), color);
         this.raster = panel.getRaster();
         this.scene = new Scene();
-        this.sceneRenderer = new SceneRenderer(scene, raster);
-        this.filler = new SeedFill();
+        this.filler = new SeedFill(fillColor, raster);
+        this.sceneRenderer = new SceneRenderer(scene, raster, lineRasterizer, filler);
         initListeners();
     }
 
@@ -56,14 +60,15 @@ public class Controller2D {
             public void mousePressed(MouseEvent e) {
                 double maxDistanceDragAndDelete = 20; // maximální vzdálenost pro nazelezení vrcholu pro pohyb a mazání
                 if (e.getButton() == MouseEvent.BUTTON1) {
+                    startX = e.getX();
+                    startY = e.getY();
                     if (!drawing) {
                         // levé tlačítko myši začne kreslit tvar
-                        startX = e.getX();
-                        startY = e.getY();
                         if (mode == Mode.SEGMENT) {
                             // vytvoření nového segmentu
                             Segment segment = new Segment(new Point(startX, startY), new Point(startX, startY));
                             scene.addSegment(segment);
+                            drawing = true;
                         } else if (mode == Mode.POLYGON) {
                             // vytvoření nového polygonu
                             Polygon polygon = new Polygon();
@@ -72,14 +77,13 @@ public class Controller2D {
                             if (!scene.getPolygons().contains(polygon)) {
                                 scene.addPolygon(polygon);
                             }
-                        } else if (mode == Mode.Fill) {
-
+                            drawing = true;
+                        } else if (mode == Mode.FILL) {
+                            filler.fill(startX, startY);
+                            panel.repaint();
                         }
-                        drawing = true;
                     } else {
-                        // přenastavení startovního bodu na aktuální pozici myši pro animaci
-                        startX = e.getX();
-                        startY = e.getY();
+                        // pokračování kreslení tvaru, pokud je již aktivní
                         if (mode == Mode.SEGMENT) {
                             // aktualizace koncového bodu segmentu na aktuální pozici myši
                             scene.getSegments().get(scene.getSegments().size() - 1).setEnd(new Point(e.getX(), e.getY()));
@@ -110,7 +114,7 @@ public class Controller2D {
                     } else {
                         // dvojité kliknutí pravým tlačítkem myši odstraní nejbližší bod tvaru
                         if (e.getClickCount() == 2) {
-                            Point closestPoint = findClosestPoint(e.getX(), e.getY(), maxDistanceDragAndDelete);
+                            Point closestPoint = findClosest.findClosestPoint(e.getX(), e.getY(), maxDistanceDragAndDelete, scene, mode);
                             // použití iteratoru pro odstranění bodu z polygonu nebo segmentu, aby se předešlo ConcurrentModificationException (odstranění prvku z kolekce během iterace zde i uvnitř metody repaintShapes())
                             if (mode == Mode.POLYGON) {
                                 Iterator<Polygon> iterator = scene.getPolygons().iterator();
@@ -146,12 +150,12 @@ public class Controller2D {
                 } else if (e.getButton() == MouseEvent.BUTTON2) {
                     // prostřední tlačítko myši interaguje s bodem
                     movingPoint = true;
-                    closestPoint = findClosestPoint(e.getX(), e.getY(), maxDistanceDragAndDelete);
+                    closestPoint = findClosest.findClosestPoint(e.getX(), e.getY(), maxDistanceDragAndDelete, scene, mode);
                     if (mode == Mode.POLYGON) {
                         if (e.getClickCount() == 2) {
                             // dvojité kliknutí prostředním tlačítkem myši přidá nový bod do polygonu na aktuální pozici myši a spojí ho s nejbližšímy body polygonu
-                            Point closestPoint = findClosestPoint(e.getX(), e.getY(), Double.MAX_VALUE);
-                            Point secondClosestPoint = findSecondClosestPoint(e.getX(), e.getY(), closestPoint);
+                            Point closestPoint = findClosest.findClosestPoint(e.getX(), e.getY(), Double.MAX_VALUE, scene, mode);
+                            Point secondClosestPoint = findClosest.findSecondClosestPoint(e.getX(), e.getY(), closestPoint, scene);
                             for (Polygon polygon : scene.getPolygons()) {
                                 if (closestPoint != null && polygon.getPoints().contains(closestPoint)) {
                                     // vložení nového bodu mezi nejbližší bod a druhý nejbližší bod polygonu
@@ -224,6 +228,7 @@ public class Controller2D {
                         System.out.print("\nSegment: Start: (" + segment.getStart().getX() + ", " + segment.getStart().getY() + ") End: (" + segment.getEnd().getX() + ", " + segment.getEnd().getY() + ")");
                     }
                     // stisknutí klávesy C vymaže raster a všechny tvary
+                    ((SeedFill)filler).clearFilledPixels();
                     scene.getPolygons().clear();
                     scene.getSegments().clear();
                     raster.clear();
@@ -231,10 +236,10 @@ public class Controller2D {
                 }
                 if (e.getKeyCode() == KeyEvent.VK_X) {
                     // přidání KeyListeneru pro stisknutí klávesy X, která změní režim mezi segmentem a polygonem
-                    if (mode.equals(Mode.POLYGON)) {
-                        mode = Mode.SEGMENT;
-                    } else {
-                        mode = Mode.POLYGON;
+                    switch (mode) {
+                        case SEGMENT -> mode = Mode.POLYGON;
+                        case POLYGON -> mode = Mode.FILL;
+                        case FILL -> mode = Mode.SEGMENT;
                     }
                     System.out.println("Mode changed to: " + mode);
                 }
@@ -242,53 +247,4 @@ public class Controller2D {
         };
         panel.addKeyListener(keyListener);
     }
-    private Point findClosestPoint(int mouseX, int mouseY, double maxDistance) {
-        double closestDistance = maxDistance;
-        Point closestPoint = null;
-        // hledání nejbližšího bodu tvaru k aktuální pozici myši pomocí Pythagorovy věty
-        if (mode.equals(Mode.SEGMENT)) {
-            for (Segment segment : scene.getSegments()) {
-                for (Point point : segment.getPoints()) {
-                    double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestPoint = point;
-                    }
-                }
-            }
-        } else if (mode.equals(Mode.POLYGON)) {
-            for (Polygon polygon : scene.getPolygons()) {
-                for (Point point : polygon.getPoints()) {
-                    double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestPoint = point;
-                    }
-                }
-            }
-        }
-        return closestPoint;
-    }
-
-    private Point findSecondClosestPoint(int mouseX, int mouseY, Point closestPoint) {
-        double secondClosestDistance = Double.MAX_VALUE;
-        Point secondClosestPoint = null;
-        // hledání druhého nejbližšího bodu polygonu k aktuální pozici myši pomocí Pythagorovy věty
-        for (Polygon polygon : scene.getPolygons()) {
-            for (Point point : polygon.getPoints()) {
-                if (point == closestPoint) {
-                    continue; // přeskočí již nalezený nejbližší bod
-                } else if (!(polygon.getPoints().indexOf(point) == polygon.getPoints().indexOf(closestPoint) + 1 || polygon.getPoints().indexOf(point) == polygon.getPoints().indexOf(closestPoint) - 1)) {
-                    continue; // přeskočí body, které nejsou vedle nejbližšího bodu v polygonu v ramci seznamu
-                }
-                double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
-                if (distance < secondClosestDistance) {
-                    secondClosestDistance = distance;
-                    secondClosestPoint = point;
-                }
-            }
-        }
-        return secondClosestPoint;
-    }
-
 }

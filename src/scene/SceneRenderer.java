@@ -1,8 +1,9 @@
 package scene;
 
+import fill.Filler;
+import fill.SeedFill;
 import raster.Raster;
 import rasterize.LineRasterizer;
-import rasterize.LineRasterizerTrivial;
 import rasterize.PolygonRasterizer;
 import shapes.Point;
 import shapes.Polygon;
@@ -15,16 +16,20 @@ public class SceneRenderer {
     // objekt zodpovědný za vykreslování scény pomocí rasterizátorů
     private final Scene scene;
     private final Raster raster;
+    private final LineRasterizer lineRasterizer;
+    private final Filler filler;
 
-    public SceneRenderer(Scene scene, Raster raster) {
+    public SceneRenderer(Scene scene, Raster raster, LineRasterizer lineRasterizer, Filler filler) {
         this.scene = scene;
         this.raster = raster;
+        this.lineRasterizer = lineRasterizer;
+        this.filler = filler;
     }
 
     // metoda pro překreslení všech tvarů
     public void repaintShapes() {
         raster.clear();
-        LineRasterizer lineRasterizer = new LineRasterizerTrivial(raster);
+        ((SeedFill)filler).reFill();
         PolygonRasterizer polygonRasterizer = new PolygonRasterizer(lineRasterizer);
         // použití iteratoru pro bezpečné odstranění polygonů během iterace, aby se předešlo ConcurrentModificationException
         // iterátor je objekt, který umožňuje bezpečně procházet kolekci a odstraňovat prvky během iterace
