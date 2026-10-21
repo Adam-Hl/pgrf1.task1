@@ -1,6 +1,7 @@
 package raster;
 
 import java.awt.image.BufferedImage;
+import java.util.OptionalInt;
 
 // nový raster pro projekt
 public class RasterBufferedImage implements Raster{
@@ -19,12 +20,13 @@ public class RasterBufferedImage implements Raster{
         }
     }
 
+    // getPixel() vrací OptionalInt pro případ, že by hledaný pixel byl mimo raster
     @Override
-    public int getPixel(int x, int y) {
+    public OptionalInt getPixel(int x, int y) {
         if (x >= 0 && y >= 0 && x < getWidth() && y < getHeight()) {
-            return image.getRGB(x, y);
+            return OptionalInt.of(image.getRGB(x, y));
         }
-        return 0;
+        return OptionalInt.empty();
     }
 
     @Override

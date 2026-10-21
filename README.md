@@ -7,3 +7,6 @@
 - Držením koleska myši můžete posouvat body.
 - Dvojitým kliknutím pravým tlačítkem myši na bod můžete odstranit bod z n-úhelníku a úsečku.
 - Dvojitým zmáčknutím kolečka myši v blízkosti hrany n-úhelníku můžete přidat nový bod na hranu n-úhelníku.
+
+
+projít si proč přesně používám dequeue v seedfill

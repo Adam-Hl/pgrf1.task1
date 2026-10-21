@@ -4,11 +4,12 @@ import raster.Raster;
 
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.OptionalInt;
 
 public class SeedFill implements Filler {
     private int fillColor;
     private final Raster raster;
-    // ukládám všechny vyplněné pixely, abych mohl znovu vyplnit při překreslení scény
+    // ukládám všechny vyplněné pixely, abych je mohl znovu vyplnit při překreslení scény
     private record FilledPixel(int x, int y, int color) {}
     private final ArrayList<FilledPixel> filledPixels = new ArrayList<>();
 
@@ -25,7 +26,10 @@ public class SeedFill implements Filler {
     }
 
     private void fillR(int x, int y, int color) {
-        int backgroundColor = raster.getPixel(x, y);
+        OptionalInt backgroundColor = raster.getPixel(x, y);
+        if (backgroundColor.isEmpty()) {
+            return;
+        }
 
         // použití deque (zásobník, LIFO) místo rekurze, aby se předešlo StackOverflowError
         Deque<int[]> pixels = new java.util.ArrayDeque<>();
@@ -37,7 +41,7 @@ public class SeedFill implements Filler {
             int py = pixel[1];
 
             if (isInBounds(px, py)) {
-                if (raster.getPixel(px, py) == backgroundColor) {
+                if (OptionalInt.of(raster.getPixel(px, py).orElse(0)).equals(backgroundColor)) {
                     raster.setPixel(px, py, color);
                     filledPixels.add(new FilledPixel(px, py, color));
 
