@@ -1,7 +1,7 @@
 package shapes;
 
 public class Edge {
-    private final int x1, y1, x2, y2;
+    private int x1, y1, x2, y2;
 
     public Edge(int x1, int y1, int x2, int y2) {
         this.x1 = x1;
@@ -38,12 +38,19 @@ public class Edge {
     }
 
     public void orientate() {
-        // TODO: zařídit orientaci
-        return;
+        // provede orientaci ze shora dolů, aby byl y1 menší než y2
+        if (y1 > y2) {
+            int tempX = x1;
+            int tempY = y1;
+            x1 = x2;
+            y1 = y2;
+            x2 = tempX;
+            y2 = tempY;
+        }
     }
 
     public boolean isIntersection(int y) {
-        // TODO: Fy <= yi and yi < Gy = F je výš než G
-        return true;
+        // Fy <= yi and yi < Gy = F je výš než G
+        return y1 <= y && y < y2;
     };
 }

@@ -1,6 +1,7 @@
 package controller;
 
 import fill.Filler;
+import fill.ScanLine;
 import fill.SeedFill;
 import raster.Raster;
 import scene.Scene;
@@ -10,6 +11,7 @@ import shapes.Polygon;
 import rasterize.LineRasterizer;
 import rasterize.LineRasterizerTrivial;
 import shapes.Segment;
+import utils.IsInside;
 import view.Panel;
 
 import java.awt.event.*;
@@ -21,8 +23,9 @@ public class Controller2D {
     private final Raster raster;
     private final Scene scene;
     private final SceneRenderer sceneRenderer;
-    private final Filler filler;
+    private Filler filler;
     private final FindClosest findClosest = new FindClosest();
+    private final IsInside isInside = new IsInside();
 
     enum Mode {
     SEGMENT,
@@ -39,7 +42,8 @@ public class Controller2D {
         this.lineRasterizer = new LineRasterizerTrivial(panel.getRaster(), color);
         this.raster = panel.getRaster();
         this.scene = new Scene();
-        this.filler = new SeedFill(fillColor, raster);
+//        this.filler = new SeedFill(fillColor, raster);
+        this.filler = new ScanLine(fillColor, raster);
         this.sceneRenderer = new SceneRenderer(scene, raster, lineRasterizer, filler);
         initListeners();
     }
@@ -79,7 +83,10 @@ public class Controller2D {
                             }
                             drawing = true;
                         } else if (mode == Mode.FILL) {
+                            Polygon selectedPolygon = isInside.isInsidePolygon(startX, startY, scene.getPolygons());
+                            ((ScanLine)filler).setPolygon(selectedPolygon); // nastaví polygon pro vyplnění
                             filler.fill(startX, startY);
+                            sceneRenderer.repaintShapes();
                             panel.repaint();
                         }
                     } else {
@@ -228,7 +235,7 @@ public class Controller2D {
                         System.out.print("\nSegment: Start: (" + segment.getStart().getX() + ", " + segment.getStart().getY() + ") End: (" + segment.getEnd().getX() + ", " + segment.getEnd().getY() + ")");
                     }
                     // stisknutí klávesy C vymaže raster a všechny tvary
-                    ((SeedFill)filler).clearFilledPixels();
+                    filler.clearFilledPixels();
                     scene.getPolygons().clear();
                     scene.getSegments().clear();
                     raster.clear();

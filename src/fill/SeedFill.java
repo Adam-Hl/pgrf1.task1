@@ -31,9 +31,9 @@ public class SeedFill implements Filler {
             return;
         }
 
-        // použití deque (zásobník, LIFO) místo rekurze, aby se předešlo StackOverflowError
+        // použití deque (zásobník, LIFO) místo rekurze
         Deque<int[]> pixels = new java.util.ArrayDeque<>();
-        pixels.push(new int[]{x, y});
+        pixels.push(new int[]{x, y});  // touple
 
         while (!pixels.isEmpty()) {
             int[] pixel = pixels.pop();
