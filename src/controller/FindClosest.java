@@ -4,15 +4,16 @@ import scene.Scene;
 import shapes.Point;
 import shapes.Polygon;
 import shapes.Segment;
+import utils.ModeController;
 
 // třída pouze pro hledání nejbližšího bodu tvaru k aktuální pozici myši
 public class FindClosest {
 
-    Point findClosestPoint(int mouseX, int mouseY, double maxDistance, Scene scene, Controller2D.Mode mode) {
+    Point findClosestPoint(int mouseX, int mouseY, double maxDistance, Scene scene, ModeController.Mode mode) {
         double closestDistance = maxDistance;
         Point closestPoint = null;
         // hledání nejbližšího bodu tvaru k aktuální pozici myši pomocí Pythagorovy věty
-        if (mode.equals(Controller2D.Mode.SEGMENT)) {
+        if (mode.equals(ModeController.Mode.SEGMENT)) {
             for (Segment segment : scene.getSegments()) {
                 for (Point point : segment.getPoints()) {
                     double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
@@ -22,7 +23,7 @@ public class FindClosest {
                     }
                 }
             }
-        } else if (mode.equals(Controller2D.Mode.POLYGON)) {
+        } else if (mode.equals(ModeController.Mode.POLYGON)) {
             for (Polygon polygon : scene.getPolygons()) {
                 for (Point point : polygon.getPoints()) {
                     double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
