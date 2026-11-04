@@ -29,7 +29,6 @@ public class SceneRenderer {
     // metoda pro překreslení všech tvarů
     public void repaintShapes() {
         raster.clear();
-        // TODO: prozatím pevně nastaveno na SeedFill, když bude reFill() i jinde -> předělat
         filler.reFill();
         PolygonRasterizer polygonRasterizer = new PolygonRasterizer(lineRasterizer);
         // použití iteratoru pro bezpečné odstranění polygonů během iterace, aby se předešlo ConcurrentModificationException

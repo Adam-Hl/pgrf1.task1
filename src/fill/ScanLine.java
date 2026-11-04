@@ -31,7 +31,7 @@ public class ScanLine implements Filler {
             ArrayList<Integer> intersections = new ArrayList<>();
 
             // pro danou scanline se ptám jestli existuje průsečík s hranou.
-            ArrayList<Edge> edges = new IsInside().getEdges(polygon);
+            ArrayList<Edge> edges = new IsInside().getEdgesRC(polygon);
             if (edges == null) {
                 return;
             }

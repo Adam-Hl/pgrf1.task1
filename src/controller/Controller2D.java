@@ -2,7 +2,6 @@ package controller;
 
 import fill.Filler;
 import fill.ScanLine;
-import fill.SeedFill;
 import raster.Raster;
 import scene.Scene;
 import scene.SceneRenderer;
@@ -46,6 +45,10 @@ public class Controller2D {
         this.filler = new ScanLine(fillColor, raster);
         this.sceneRenderer = new SceneRenderer(scene, raster, lineRasterizer, filler);
         initListeners();
+//        // Cviko
+//        scene.addSegment(new Segment(new Point(100, 100), new Point(200, 200)));
+//        sceneRenderer.repaintShapes();
+//        panel.repaint();
     }
 
     private void initListeners() {
@@ -62,6 +65,14 @@ public class Controller2D {
             // začátek tažení myší
             @Override
             public void mousePressed(MouseEvent e) {
+                // testovací volání metody isInsideHP
+                IsInside isInside = new IsInside();
+                    try {
+                        System.out.println(isInside.isInsideHP(e.getX(), e.getY(), scene.getPolygons()));
+                    } catch (RuntimeException ex) {
+                        System.out.println("Není polygon");
+                    }
+
                 double maxDistanceDragAndDelete = 20; // maximální vzdálenost pro nazelezení vrcholu pro pohyb a mazání
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     startX = e.getX();
