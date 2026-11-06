@@ -3,6 +3,7 @@ package controller;
 import fill.Filler;
 import fill.ScanLine;
 import raster.Raster;
+import rasterize.LineRasterizerTrivialSnap;
 import scene.Scene;
 import scene.SceneRenderer;
 import shapes.Point;
@@ -12,6 +13,7 @@ import rasterize.LineRasterizerTrivial;
 import shapes.Segment;
 import utils.IsInside;
 import utils.ModeController;
+import utils.SegmentSnapper;
 import view.Panel;
 
 import java.awt.event.*;
@@ -19,7 +21,7 @@ import java.util.Iterator;
 
 public class Controller2D {
     private final Panel panel;
-    private final LineRasterizer lineRasterizer;
+    private LineRasterizer lineRasterizer;
     private final Raster raster;
     private final Scene scene;
     private final SceneRenderer sceneRenderer;
@@ -27,11 +29,14 @@ public class Controller2D {
     private final FindClosest findClosest = new FindClosest();
     private final IsInside isInside = new IsInside();
     private final ModeController modeController;
+    private int color;
+    private boolean snapping = false;
+    private SegmentSnapper segmentSnapper = new SegmentSnapper();
 
     public Controller2D(Panel panel, ModeController modeController) {
         this.panel = panel;
         int fillColor = 0x4eb896; // barva pro vyplnění
-        int color = 0xc93b2b; // barva pro vykreslování tvarů
+        color = 0xc93b2b; // barva pro vykreslování tvarů
         int backgroundColor = 0x000000; // barva pozadí
         this.lineRasterizer = new LineRasterizerTrivial(panel.getRaster(), color);
         this.raster = panel.getRaster();
@@ -92,7 +97,13 @@ public class Controller2D {
                         // pokračování kreslení tvaru, pokud je již aktivní
                         if (modeController.getMode() == ModeController.Mode.SEGMENT) {
                             // aktualizace koncového bodu segmentu na aktuální pozici myši
-                            scene.getSegments().get(scene.getSegments().size() - 1).setEnd(new Point(e.getX(), e.getY()));
+                            Segment segment = scene.getSegments().get(scene.getSegments().size() - 1);
+                            // snapování
+                            if (snapping) {
+                                segment.setEnd(segmentSnapper.snapSegmentEndPoint(segment.getStart(), new Point(e.getX(), e.getY())));
+                            } else {
+                                segment.setEnd(new Point(e.getX(), e.getY()));
+                            }
                             drawing = false; // segment je dokončen, takže se kreslení ukončí
                         } else if (modeController.getMode() == ModeController.Mode.POLYGON) {
                             // levé tlačítko myši přidá bod do polygonu
@@ -218,7 +229,7 @@ public class Controller2D {
         panel.addMouseListener(mouseAdapter);
         panel.addMouseMotionListener(mouseAdapter);
 
-        KeyListener keyListener = new KeyAdapter() {
+        KeyListener keyListener = new KeyListener() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_C) {
@@ -235,10 +246,28 @@ public class Controller2D {
                     }
                     // stisknutí klávesy C vymaže raster a všechny tvary
                     clear();
+                } else if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+                    // funkce snapování při kreslení úseček
+                    lineRasterizer = new LineRasterizerTrivialSnap(raster, color);
+                    snapping = true;
                 }
             }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+                    lineRasterizer = new LineRasterizerTrivial(raster, color);
+                    snapping = false;
+                }
+            }
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
         };
+
         panel.addKeyListener(keyListener);
+
     }
 
     public void clear() {
