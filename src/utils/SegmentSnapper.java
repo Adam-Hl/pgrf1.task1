@@ -15,8 +15,6 @@ public class SegmentSnapper {
             // výpočet směrnice
             float k = (float) (y2 - y1) / (x2 - x1);
 
-            System.out.println("k = " + k);
-
             // snap po 45°
             if (k > -0.4 && k < 0.4) {
                 k = 0;

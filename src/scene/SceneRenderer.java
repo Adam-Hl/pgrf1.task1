@@ -1,5 +1,6 @@
 package scene;
 
+import croppers.SimpleFrameCrop;
 import fill.Filler;
 import fill.SeedFill;
 import raster.Raster;
@@ -18,6 +19,7 @@ public class SceneRenderer {
     private final Raster raster;
     private final LineRasterizer lineRasterizer;
     private final Filler filler;
+    private final SimpleFrameCrop simpleFrameCrop = new SimpleFrameCrop();
 
     public SceneRenderer(Scene scene, Raster raster, LineRasterizer lineRasterizer, Filler filler) {
         this.scene = scene;
@@ -30,6 +32,10 @@ public class SceneRenderer {
     public void repaintShapes() {
         raster.clear();
         filler.reFill();
+
+        // ořezávání pomocí SimpleFrameCrop; pokud je v scéně přítomen ořezávací obdélník, použije se pro ořezávání segmentů
+        boolean croppingRectanglePresent = scene.getPolygons().stream().anyMatch(polygon -> polygon instanceof shapes.CroppingRectangle);
+
         PolygonRasterizer polygonRasterizer = new PolygonRasterizer(lineRasterizer);
         // použití iteratoru pro bezpečné odstranění polygonů během iterace, aby se předešlo ConcurrentModificationException
         // iterátor je objekt, který umožňuje bezpečně procházet kolekci a odstraňovat prvky během iterace
@@ -51,6 +57,14 @@ public class SceneRenderer {
                 // odstranění segmentu, pokud má méně než 2 body
                 iterator.remove();
                 continue;
+            }
+            // ořezávání segmentů pomocí algoritmu Cohen-Sutherland, pokud je přítomen ořezávací obdélník
+            if (croppingRectanglePresent) {
+                segment = simpleFrameCrop.CropCohenSutherland(segment);
+                if (segment == null) {
+                    // odstranění segmentu, pokud je zcela mimo ořezávací obdélník
+                    continue;
+                }
             }
             lineRasterizer.rasterize(segment.getStart().getX(), segment.getStart().getY(), segment.getEnd().getX(), segment.getEnd().getY());
         }

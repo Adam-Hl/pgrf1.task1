@@ -6,6 +6,7 @@ import raster.Raster;
 import rasterize.LineRasterizerTrivialSnap;
 import scene.Scene;
 import scene.SceneRenderer;
+import shapes.CroppingRectangle;
 import shapes.Point;
 import shapes.Polygon;
 import rasterize.LineRasterizer;
@@ -277,4 +278,11 @@ public class Controller2D {
         raster.clear();
         panel.repaint();
     }
+
+    public void addCroppingRectangle() {
+        scene.addPolygon(new CroppingRectangle());
+        System.out.println();
+        sceneRenderer.repaintShapes();
+        panel.repaint();
+    };
 }

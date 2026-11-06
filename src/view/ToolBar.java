@@ -31,6 +31,12 @@ public class ToolBar extends JToolBar {
         });
         add(bFill);
 
+        JButton bCSutherland = new JButton("Cohen-Sutherland");
+        bCSutherland.addActionListener(e -> {
+            controller2D.addCroppingRectangle();
+        });
+        add(bCSutherland);
+
         JButton bClear = new JButton("Clear");
         bClear.addActionListener(e -> {
             controller2D.clear();
