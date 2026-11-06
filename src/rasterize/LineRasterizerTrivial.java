@@ -23,42 +23,42 @@ public class LineRasterizerTrivial extends LineRasterizer{
 
         // vykreslování podle primární osy X
         if (Math.abs(x2 - x1) >= Math.abs(y2 - y1)) {
-            // prohození bodů, aby se předešlo záporným hodnotám a aby se úsečka správně vykreslovala i v 2. a 3. kvadrantu
-            if (x1 > x2) {
-                int temp = x1;
-                x1 = x2;
-                x2 = temp;
-
-                temp = y1;
-                y1 = y2;
-                y2 = temp;
-            }
             // výpočet směrnice
             float k = (float) (y2 - y1) / (x2 - x1);
+
             // for cyklus pro vykreslení
-            for (int x = x1; x <= x2; x++) {
-                int y = (int) (y1 + k * (x - x1));
-                raster.setPixel(x, y, color);
+            if (x1 > x2) {
+                // vykreslování "pozpátku"
+                for (int x = x1; x >= x2; x--) {
+                    int y = (int) (y1 + k * (x - x1));
+                    raster.setPixel(x, y, color);
+                }
+            } else {
+                for (int x = x1; x <= x2; x++) {
+                    int y = (int) (y1 + k * (x - x1));
+                    raster.setPixel(x, y, color);
+                }
             }
+
+
         }
         // vykreslování podle primární osy Y – pro vysoké k
         else {
-            if (y1 > y2) {
-                int temp = x1;
-                x1 = x2;
-                x2 = temp;
-
-                temp = y1;
-                y1 = y2;
-                y2 = temp;
-            }
 
             float k = (float) (x2 - x1) / (y2 - y1);
 
-            for (int y = y1; y <= y2; y++) {
-                int x = Math.round(x1 + k * (y - y1));
-                raster.setPixel(x, y, color);
+            if (y1 > y2) {
+                for (int y = y1; y >= y2; y--) {
+                    int x = Math.round(x1 + k * (y - y1));
+                    raster.setPixel(x, y, color);
+                }
+            } else {
+                for (int y = y1; y <= y2; y++) {
+                    int x = Math.round(x1 + k * (y - y1));
+                    raster.setPixel(x, y, color);
+                }
             }
+
         }
     }
 }
