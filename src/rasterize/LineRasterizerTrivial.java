@@ -30,12 +30,12 @@ public class LineRasterizerTrivial extends LineRasterizer{
             if (x1 > x2) {
                 // vykreslování "pozpátku"
                 for (int x = x1; x >= x2; x--) {
-                    int y = (int) (y1 + k * (x - x1));
+                    int y = Math.round(y1 + k * (x - x1));
                     raster.setPixel(x, y, color);
                 }
             } else {
                 for (int x = x1; x <= x2; x++) {
-                    int y = (int) (y1 + k * (x - x1));
+                    int y = Math.round(y1 + k * (x - x1));
                     raster.setPixel(x, y, color);
                 }
             }
