@@ -48,6 +48,7 @@ public class SceneRenderer {
                 polygonIterator.remove();
                 continue;
             }
+            polygonRasterizer.setColor(polygon.getColor());
             polygonRasterizer.rasterize(polygon);
         }
         Iterator<Segment> iterator = scene.getSegments().iterator();
@@ -66,6 +67,7 @@ public class SceneRenderer {
                     continue;
                 }
             }
+            lineRasterizer.setColor(segment.getColor());
             lineRasterizer.rasterize(segment.getStart().getX(), segment.getStart().getY(), segment.getEnd().getX(), segment.getEnd().getY());
         }
     }

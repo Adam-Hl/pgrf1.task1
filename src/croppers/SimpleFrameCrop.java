@@ -117,7 +117,7 @@ public class SimpleFrameCrop {
             }
         }
         if (accepted) {
-            return new Segment(new Point(p1.getX(), p1.getY()), new Point(p2.getX(), p2.getY()));
+            return new Segment(new Point(p1.getX(), p1.getY()), new Point(p2.getX(), p2.getY()), segment.getColor());
         } else {
             return null; // segment je zcela mimo obdélník
         }

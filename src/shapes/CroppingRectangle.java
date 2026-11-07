@@ -3,7 +3,7 @@ package shapes;
 public class CroppingRectangle extends Polygon{
 
     public CroppingRectangle() {
-        super();
+        super(0xFFC107); // žlutá barva
         this.addPoint(new Point(250, 175));
         this.addPoint(new Point(550, 175));
         this.addPoint(new Point(550, 425));

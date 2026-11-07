@@ -71,12 +71,12 @@ public class Controller2D {
                         // levé tlačítko myši začne kreslit tvar
                         if (modeController.getMode() == ModeController.Mode.SEGMENT) {
                             // vytvoření nového segmentu
-                            Segment segment = new Segment(new Point(startX, startY), new Point(startX, startY));
+                            Segment segment = new Segment(new Point(startX, startY), new Point(startX, startY), color);
                             scene.addSegment(segment);
                             drawing = true;
                         } else if (modeController.getMode() == ModeController.Mode.POLYGON) {
                             // vytvoření nového polygonu
-                            Polygon polygon = new Polygon();
+                            Polygon polygon = new Polygon(color);
                             polygon.addPoint(new Point(startX, startY));
                             // přidání polygonu do rasteru, pokud ještě není přidán
                             if (!scene.getPolygons().contains(polygon)) {

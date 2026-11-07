@@ -5,7 +5,7 @@ import raster.Raster;
 // abstraktní třída pro rasterozery (třídy pro vykreslování tvarů)
 public abstract class LineRasterizer {
     protected final Raster raster;
-    protected final int color;
+    protected int color;
 
     public LineRasterizer(Raster raster, int color) {
         this.color = color;
@@ -13,5 +13,9 @@ public abstract class LineRasterizer {
     }
 
     public void rasterize(int x1, int y1, int x2, int y2) {
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 }

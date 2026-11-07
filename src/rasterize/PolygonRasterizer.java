@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class PolygonRasterizer{
     private final LineRasterizer lineRasterizer;
+    private int color;
 
     public PolygonRasterizer(LineRasterizer lineRasterizer) {
         this.lineRasterizer = lineRasterizer;
@@ -29,8 +30,13 @@ public class PolygonRasterizer{
                 }
                 // vykreslení čáry mezi body p1 a p2
                 if (p2 != null) {
+                    lineRasterizer.setColor(color);
                     lineRasterizer.rasterize(p1.getX(), p1.getY(), p2.getX(), p2.getY());
                 }
             }
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 }

@@ -4,11 +4,13 @@ import java.util.ArrayList;
 
 public class Segment {
     private ArrayList<Point> points;
+    private int color;
 
-    public Segment(Point start, Point end) {
+    public Segment(Point start, Point end, int color) {
         points = new ArrayList<>();
         points.add(start);
         points.add(end);
+        this.color = color;
     }
 
     public Point getStart() {
@@ -29,5 +31,9 @@ public class Segment {
 
     public void setEnd(Point end) {
         points.set(1, end);
+    }
+
+    public int getColor() {
+        return color;
     }
 }
