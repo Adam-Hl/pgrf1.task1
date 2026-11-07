@@ -2,6 +2,7 @@ package controller;
 
 import fill.Filler;
 import fill.ScanLine;
+import fill.SeedFill;
 import raster.Raster;
 import rasterize.LineRasterizerTrivialSnap;
 import scene.Scene;
@@ -42,8 +43,8 @@ public class Controller2D {
         this.lineRasterizer = new LineRasterizerTrivial(panel.getRaster(), color);
         this.raster = panel.getRaster();
         this.scene = new Scene();
-//        this.filler = new SeedFill(fillColor, raster);
-        this.filler = new ScanLine(fillColor, raster);
+        this.filler = new SeedFill(fillColor, raster);
+//        this.filler = new ScanLine(fillColor, raster);
         this.sceneRenderer = new SceneRenderer(scene, raster, lineRasterizer, filler);
         this.modeController = modeController;
         initListeners();
@@ -84,8 +85,10 @@ public class Controller2D {
                             }
                             drawing = true;
                         } else if (modeController.getMode() == ModeController.Mode.FILL) {
-                            Polygon selectedPolygon = isInside.isInsidePolygon(startX, startY, scene.getPolygons());
-                            ((ScanLine)filler).setPolygon(selectedPolygon); // nastaví polygon pro vyplnění
+                            if (filler instanceof ScanLine) {
+                                Polygon selectedPolygon = isInside.isInsidePolygon(startX, startY, scene.getPolygons());
+                                ((ScanLine)filler).setPolygon(selectedPolygon); // nastaví polygon pro vyplnění
+                            }
                             try {
                                 filler.fill(startX, startY);
                             } catch (NullPointerException ex) {
