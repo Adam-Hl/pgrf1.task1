@@ -31,6 +31,33 @@ public class Polygon {
     }
 
     public int getColor() {
-        return 0;
+        return color;
+    }
+
+    public ArrayList<Edge> getEdgesOriented() {
+        // vytvářím seznam hran z bodů v polygonu
+        ArrayList<Edge> edges = new ArrayList<>();
+        for (int i = 0; i < getPoints().size(); i++) {
+            Point p1 = getPoints().get(i);
+            Point p2 = getPoints().get((i + 1) % getPoints().size());
+            Edge edge = new Edge(p1, p2);
+            if (!edge.isHorizontal()) {
+                edge.orientate();
+                edges.add(edge);
+            }
+        }
+        return edges;
+    }
+
+    public ArrayList<Edge> getEdges() {
+        // vytvářím seznam hran z bodů v polygonu
+        ArrayList<Edge> edges = new ArrayList<>();
+        for (int i = 0; i < getPoints().size(); i++) {
+            Point p1 = getPoints().get(i);
+            Point p2 = getPoints().get((i + 1) % getPoints().size());
+            Edge edge = new Edge(p1, p2);
+            edges.add(edge);
+        }
+        return edges;
     }
 }

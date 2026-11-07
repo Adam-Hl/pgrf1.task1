@@ -33,6 +33,15 @@ public class FindClosest {
                     }
                 }
             }
+            for (Polygon polygon : scene.getCroppingPolygons()) {
+                for (Point point : polygon.getPoints()) {
+                    double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestPoint = point;
+                    }
+                }
+            }
         }
         return closestPoint;
     }
@@ -42,6 +51,20 @@ public class FindClosest {
         Point secondClosestPoint = null;
         // hledání druhého nejbližšího bodu polygonu k aktuální pozici myši pomocí Pythagorovy věty
         for (Polygon polygon : scene.getPolygons()) {
+            for (Point point : polygon.getPoints()) {
+                if (point == closestPoint) {
+                    continue; // přeskočí již nalezený nejbližší bod
+                } else if (!(polygon.getPoints().indexOf(point) == polygon.getPoints().indexOf(closestPoint) + 1 || polygon.getPoints().indexOf(point) == polygon.getPoints().indexOf(closestPoint) - 1)) {
+                    continue; // přeskočí body, které nejsou vedle nejbližšího bodu v polygonu v ramci seznamu
+                }
+                double distance = Math.sqrt(Math.pow(point.getX() - mouseX, 2) + Math.pow(point.getY() - mouseY, 2));
+                if (distance < secondClosestDistance) {
+                    secondClosestDistance = distance;
+                    secondClosestPoint = point;
+                }
+            }
+        }
+        for (Polygon polygon : scene.getCroppingPolygons()) {
             for (Point point : polygon.getPoints()) {
                 if (point == closestPoint) {
                     continue; // přeskočí již nalezený nejbližší bod

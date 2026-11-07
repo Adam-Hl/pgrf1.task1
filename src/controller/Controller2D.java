@@ -205,6 +205,7 @@ public class Controller2D {
                 }
                 // pouze animace přímky při tažení myší
                 sceneRenderer.repaintShapes();
+                lineRasterizer.setColor(color);
                 lineRasterizer.rasterize(startX, startY, e.getX(), e.getY());
                 panel.repaint();
             }
@@ -213,8 +214,21 @@ public class Controller2D {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (movingPoint && closestPoint != null) {
-                    closestPoint.setX(e.getX());
-                    closestPoint.setY(e.getY());
+                    // speciální případ pro přesouvání bodu ořezávacího polygonu; zachování obdélníku
+                    if (closestPoint != null) {
+                        for (Polygon croppingPolygon : scene.getCroppingPolygons()) {
+                            if (croppingPolygon instanceof CroppingRectangle rectangle
+                                    && rectangle.getPoints().contains(closestPoint)) {
+                                rectangle.movePoint(closestPoint, e.getX(), e.getY());
+                                sceneRenderer.repaintShapes();
+                                panel.repaint();
+                                return;
+                            }
+                        }
+
+                        closestPoint.setX(e.getX());
+                        closestPoint.setY(e.getY());
+                    }
                     sceneRenderer.repaintShapes();
                     panel.repaint();
                 }
@@ -275,13 +289,19 @@ public class Controller2D {
         filler.clearFilledPixels();
         scene.getPolygons().clear();
         scene.getSegments().clear();
+        scene.getCroppingPolygons().clear();
         raster.clear();
         panel.repaint();
     }
 
     public void addCroppingRectangle() {
-        scene.addPolygon(new CroppingRectangle());
-        System.out.println();
+        scene.addCroppingPolygon(new CroppingRectangle());
+        sceneRenderer.repaintShapes();
+        panel.repaint();
+    };
+
+    public void addCroppingHexagon() {
+        scene.addCroppingPolygon(new shapes.CroppingPolygon());
         sceneRenderer.repaintShapes();
         panel.repaint();
     };

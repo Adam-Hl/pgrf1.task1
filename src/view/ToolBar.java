@@ -37,6 +37,12 @@ public class ToolBar extends JToolBar {
         });
         add(bCSutherland);
 
+        JButton bSHodgman = new JButton("Sutherland-Hodgman");
+        bSHodgman.addActionListener(e -> {
+            controller2D.addCroppingHexagon();
+        });
+        add(bSHodgman);
+
         JButton bClear = new JButton("Clear");
         bClear.addActionListener(e -> {
             controller2D.clear();

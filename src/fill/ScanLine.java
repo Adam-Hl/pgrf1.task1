@@ -3,8 +3,6 @@ package fill;
 import raster.Raster;
 import shapes.Edge;
 import shapes.Polygon;
-import shapes.Point;
-import utils.IsInside;
 
 import java.util.ArrayList;
 
@@ -28,10 +26,10 @@ public class ScanLine implements Filler {
         int yMax = raster.getHeight() - 1;
 
         for (int yi = yMin; yi <= yMax; yi++) {
-            ArrayList<Integer> intersections = new ArrayList<>();
+            ArrayList<Double> intersections = new ArrayList<>();
 
             // pro danou scanline se ptám jestli existuje průsečík s hranou.
-            ArrayList<Edge> edges = new IsInside().getEdgesRC(polygon);
+            ArrayList<Edge> edges = polygon.getEdgesOriented();
             if (edges == null) {
                 return;
             }
@@ -41,14 +39,14 @@ public class ScanLine implements Filler {
                 // výpočet pozice průsečíku
                 double intersectionX = edge.getX1() + (double) ((edge.getX2() - edge.getX1()) * (yi - edge.getY1())) / (edge.getY2() - edge.getY1());
                 // uložit průsečík do seznamu průsečíků pro dané y
-                intersections.add((int) intersectionX);
+                intersections.add(intersectionX);
             }
             // spojíme lichý se sudým průsečíkem
-            intersections.sort(Integer::compareTo);
+            intersections.sort(Double::compareTo);
             for (int i = 0; i < intersections.size(); i += 2) {
                 if (i + 1 < intersections.size()) {
-                    int xStart = intersections.get(i);
-                    int xEnd = intersections.get(i + 1);
+                    int xStart = (int) Math.round(intersections.get(i));
+                    int xEnd = (int) Math.round(intersections.get(i + 1));
                     // vyplnit oblast mezi průsečíky
                     for (int xi = xStart; xi <= xEnd; xi++) {
                         filledPixels.add(new FilledPixel(xi, yi, fillColor));

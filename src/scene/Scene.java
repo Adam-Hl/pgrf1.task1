@@ -9,6 +9,7 @@ public class Scene {
     // objekt zodpovědný za správu tvarů na scéně
     private final ArrayList<Polygon> polygons = new ArrayList<>();
     private final ArrayList<Segment> segments = new ArrayList<>();
+    private final ArrayList<Polygon> croppingPolygons = new ArrayList<>();
 
 
     public ArrayList<Polygon> getPolygons() {
@@ -25,5 +26,13 @@ public class Scene {
 
     public void addSegment(Segment segment) {
         segments.add(segment);
+    }
+
+    public ArrayList<Polygon> getCroppingPolygons() {
+        return croppingPolygons;
+    }
+
+    public void addCroppingPolygon(Polygon croppingPolygon) {
+        croppingPolygons.add(croppingPolygon);
     }
 }

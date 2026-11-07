@@ -5,8 +5,6 @@ import shapes.Point;
 import shapes.Polygon;
 import shapes.Segment;
 
-import java.util.ArrayList;
-
 public class SimpleFrameCrop {
     // ořezávací obdélník
     Polygon cropRectangle = new CroppingRectangle();
@@ -32,6 +30,29 @@ public class SimpleFrameCrop {
 
     public Polygon getCropRectangle() {
         return cropRectangle;
+    }
+
+    // metoda pro nastavení ořezávacího obdélníku podle zadaného polygonu
+    public void setCropRectangle(Polygon cropRectangle) {
+        xMin = cropRectangle.getPoints().stream()
+                .mapToInt(Point::getX)
+                .min()
+                .orElseThrow();
+
+        xMax = cropRectangle.getPoints().stream()
+                .mapToInt(Point::getX)
+                .max()
+                .orElseThrow();
+
+        yMin = cropRectangle.getPoints().stream()
+                .mapToInt(Point::getY)
+                .min()
+                .orElseThrow();
+
+        yMax = cropRectangle.getPoints().stream()
+                .mapToInt(Point::getY)
+                .max()
+                .orElseThrow();
     }
 
     // implementace cohen-sutherland algoritmu pro ořezávání segmentů podle zadaného obdélníku
