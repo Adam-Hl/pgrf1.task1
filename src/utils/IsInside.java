@@ -1,7 +1,6 @@
 package utils;
 
 import shapes.Edge;
-import shapes.Point;
 import shapes.Polygon;
 
 import java.util.ArrayList;
@@ -44,24 +43,17 @@ public class IsInside {
         int Bx = edge.getX2();
         int By = edge.getY2();
 
-        // TODO: zavést třídu vektor: výpočet normály a skalárního součinu
         // tečný vektor hrany
-        record tangent(int x, int y) {
-        }
-        tangent t = new tangent(Bx - Ax, By - Ay);
+        Vector t = new Vector(Bx - Ax, By - Ay);
 
         // spočítat normálu na levé straně hrany
-        record normal(int x, int y) {
-        }
-        normal n = new normal(-t.y, t.x);
+        Vector n = new Vector(-t.getY(), t.getX());
 
         // vektor k bodu P (kam jsem kliknul)
-        record vectorToPoint(int x, int y) {
-        }
-        vectorToPoint v = new vectorToPoint(x - Ax, y - Ay);
+        Vector v = new Vector(x - Ax, y - Ay);
 
         // skalární součin normály a vektoru k bodu P
-        double dotProduct = n.x * v.x + n.y * v.y;
+        double dotProduct = n.dotProduct(v);
 
         // podívat se na znaménko skalárního součinu, pokud je záporné, bod je mimo polygon
         return !(dotProduct < 0);
@@ -74,24 +66,17 @@ public class IsInside {
         int Bx = edge.getX2();
         int By = edge.getY2();
 
-        // TODO: zavést třídu vektor: výpočet normály a skalárního součinu
         // tečný vektor hrany
-        record tangent(int x, int y) {
-        }
-        tangent t = new tangent(Bx - Ax, By - Ay);
+        Vector t = new Vector(Bx - Ax, By - Ay);
 
         // spočítat normálu na levé straně hrany
-        record normal(int x, int y) {
-        }
-        normal n = new normal(t.y, -t.x);
+        Vector n = new Vector(t.getY(), -t.getX());
 
         // vektor k bodu P (kam jsem kliknul)
-        record vectorToPoint(int x, int y) {
-        }
-        vectorToPoint v = new vectorToPoint(x - Ax, y - Ay);
+        Vector v = new Vector(x - Ax, y - Ay);
 
         // skalární součin normály a vektoru k bodu P
-        double dotProduct = n.x * v.x + n.y * v.y;
+        double dotProduct = n.dotProduct(v);
 
         // podívat se na znaménko skalárního součinu, pokud je záporné, bod je mimo polygon
         return !(dotProduct < 0);
