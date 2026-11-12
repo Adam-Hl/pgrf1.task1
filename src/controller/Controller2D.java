@@ -43,6 +43,7 @@ public class Controller2D {
         this.lineRasterizer = new LineRasterizerTrivial(panel.getRaster(), color);
         this.raster = panel.getRaster();
         this.scene = new Scene();
+        // výběr vyplňovacího algoritmu; lze přepínat mezi SeedFill a ScanLine
         this.filler = new SeedFill(fillColor, raster);
 //        this.filler = new ScanLine(fillColor, raster);
         this.sceneRenderer = new SceneRenderer(scene, raster, lineRasterizer, filler);

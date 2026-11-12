@@ -2,6 +2,7 @@ package fill;
 
 import raster.Raster;
 import shapes.Edge;
+import shapes.Point;
 import shapes.Polygon;
 
 import java.util.ArrayList;
@@ -21,9 +22,17 @@ public class ScanLine implements Filler {
     @Override
     public void fill(int x, int y) {
 
-        // TODO: najít správný min a max z polygonu
-        int yMin = 0;
-        int yMax = raster.getHeight() - 1;
+        // najít správný min a max z polygonu
+        int yMin = Integer.MAX_VALUE;
+        int yMax = Integer.MIN_VALUE;
+        for (Point point : polygon.getPoints()) {
+            if (point.getY() < yMin) {
+                yMin = point.getY();
+            }
+            if (point.getY() > yMax) {
+                yMax = point.getY();
+            }
+        }
 
         for (int yi = yMin; yi <= yMax; yi++) {
             ArrayList<Double> intersections = new ArrayList<>();
@@ -55,7 +64,6 @@ public class ScanLine implements Filler {
                 }
             }
         }
-        // TODO: obtáhnout polygon
         // obtažení polygonu probíhá v controlleru, protože je potřeba použít rasterizátor a scene renderer,
         // aby se obtažení vykreslilo na raster.
         // ScanLine je jen algoritmus pro vyplnění polygonu, ne pro jeho vykreslení.
