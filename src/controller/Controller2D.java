@@ -7,12 +7,9 @@ import raster.Raster;
 import rasterize.LineRasterizerTrivialSnap;
 import scene.Scene;
 import scene.SceneRenderer;
-import shapes.CroppingRectangle;
-import shapes.Point;
-import shapes.Polygon;
+import shapes.*;
 import rasterize.LineRasterizer;
 import rasterize.LineRasterizerTrivial;
-import shapes.Segment;
 import utils.IsInside;
 import utils.ModeController;
 import utils.SegmentSnapper;
@@ -60,7 +57,7 @@ public class Controller2D {
             private int startY;
             private boolean drawing = false; // zda se kreslí polygon a pohybuje se myší
             private boolean movingPoint = false; // zda se přesouvá bod polygonu
-            private Point closestPoint; // nejbližší bod polygonu k kliknuté pozici myši
+            private Point2D closestPoint; // nejbližší bod polygonu k kliknuté pozici myši
 
             // začátek tažení myší
             @Override
@@ -73,13 +70,13 @@ public class Controller2D {
                         // levé tlačítko myši začne kreslit tvar
                         if (modeController.getMode() == ModeController.Mode.SEGMENT) {
                             // vytvoření nového segmentu
-                            Segment segment = new Segment(new Point(startX, startY), new Point(startX, startY), color);
+                            Segment segment = new Segment(new Point2D(startX, startY), new Point2D(startX, startY), color);
                             scene.addSegment(segment);
                             drawing = true;
                         } else if (modeController.getMode() == ModeController.Mode.POLYGON) {
                             // vytvoření nového polygonu
                             Polygon polygon = new Polygon(color);
-                            polygon.addPoint(new Point(startX, startY));
+                            polygon.addPoint(new Point2D(startX, startY));
                             // přidání polygonu do rasteru, pokud ještě není přidán
                             if (!scene.getPolygons().contains(polygon)) {
                                 scene.addPolygon(polygon);
@@ -105,14 +102,14 @@ public class Controller2D {
                             Segment segment = scene.getSegments().get(scene.getSegments().size() - 1);
                             // snapování
                             if (snapping) {
-                                segment.setEnd(segmentSnapper.snapSegmentEndPoint(segment.getStart(), new Point(e.getX(), e.getY())));
+                                segment.setEnd(segmentSnapper.snapSegmentEndPoint(segment.getStart(), new Point2D(e.getX(), e.getY())));
                             } else {
-                                segment.setEnd(new Point(e.getX(), e.getY()));
+                                segment.setEnd(new Point2D(e.getX(), e.getY()));
                             }
                             drawing = false; // segment je dokončen, takže se kreslení ukončí
                         } else if (modeController.getMode() == ModeController.Mode.POLYGON) {
                             // levé tlačítko myši přidá bod do polygonu
-                            scene.getPolygons().get(scene.getPolygons().size() - 1).addPoint(new Point(e.getX(), e.getY()));
+                            scene.getPolygons().get(scene.getPolygons().size() - 1).addPoint(new Point2D(e.getX(), e.getY()));
                         }
                         sceneRenderer.repaintShapes();
                         panel.repaint();
@@ -136,14 +133,14 @@ public class Controller2D {
                     } else {
                         // dvojité kliknutí pravým tlačítkem myši odstraní nejbližší bod tvaru
                         if (e.getClickCount() == 2) {
-                            Point closestPoint = findClosest.findClosestPoint(e.getX(), e.getY(), maxDistanceDragAndDelete, scene, modeController.getMode());
+                            Point2D closestPoint2D = findClosest.findClosestPoint(e.getX(), e.getY(), maxDistanceDragAndDelete, scene, modeController.getMode());
                             // použití iteratoru pro odstranění bodu z polygonu nebo segmentu, aby se předešlo ConcurrentModificationException (odstranění prvku z kolekce během iterace zde i uvnitř metody repaintShapes())
                             if (modeController.getMode() == ModeController.Mode.POLYGON) {
                                 Iterator<Polygon> iterator = scene.getPolygons().iterator();
                                 while (iterator.hasNext()) {
                                     Polygon polygon = iterator.next();
-                                    if (closestPoint != null && polygon.getPoints().contains(closestPoint)) {
-                                        polygon.getPoints().remove(closestPoint);
+                                    if (closestPoint2D != null && polygon.getPoints().contains(closestPoint2D)) {
+                                        polygon.getPoints().remove(closestPoint2D);
                                         if (polygon.getPoints().size() < 3) {
                                             // odstranění polygonu, pokud má méně než 3 body
                                             iterator.remove();
@@ -156,8 +153,8 @@ public class Controller2D {
                                 Iterator<Segment> iterator = scene.getSegments().iterator();
                                 while (iterator.hasNext()) {
                                     Segment segment = iterator.next();
-                                    if (closestPoint != null && segment.getPoints().contains(closestPoint)) {
-                                        segment.getPoints().remove(closestPoint);
+                                    if (closestPoint2D != null && segment.getPoints().contains(closestPoint2D)) {
+                                        segment.getPoints().remove(closestPoint2D);
                                         if (segment.getPoints().size() < 2) {
                                             // odstranění segmentu, pokud má méně než 2 body
                                             iterator.remove();
@@ -176,21 +173,21 @@ public class Controller2D {
                     if (modeController.getMode() == ModeController.Mode.POLYGON) {
                         if (e.getClickCount() == 2) {
                             // dvojité kliknutí prostředním tlačítkem myši přidá nový bod do polygonu na aktuální pozici myši a spojí ho s nejbližšímy body polygonu
-                            Point closestPoint = findClosest.findClosestPoint(e.getX(), e.getY(), Double.MAX_VALUE, scene, modeController.getMode());
-                            Point secondClosestPoint = findClosest.findSecondClosestPoint(e.getX(), e.getY(), closestPoint, scene);
+                            Point2D closestPoint2D = findClosest.findClosestPoint(e.getX(), e.getY(), Double.MAX_VALUE, scene, modeController.getMode());
+                            Point2D secondClosestPoint2D = findClosest.findSecondClosestPoint(e.getX(), e.getY(), closestPoint2D, scene);
                             for (Polygon polygon : scene.getPolygons()) {
-                                if (closestPoint != null && polygon.getPoints().contains(closestPoint)) {
+                                if (closestPoint2D != null && polygon.getPoints().contains(closestPoint2D)) {
                                     // vložení nového bodu mezi nejbližší bod a druhý nejbližší bod polygonu
-                                    int indexClosest = polygon.getPoints().indexOf(closestPoint);
-                                    int indexSecondClosest = polygon.getPoints().indexOf(secondClosestPoint);
+                                    int indexClosest = polygon.getPoints().indexOf(closestPoint2D);
+                                    int indexSecondClosest = polygon.getPoints().indexOf(secondClosestPoint2D);
                                     // pokud je nejbližší bod poslední bod v polygonu, přidá se nový bod na konec polygonu
                                     if (indexClosest == polygon.getPoints().size() -1 || indexSecondClosest == polygon.getPoints().size() -1) {
-                                        polygon.getPoints().add(new Point(e.getX(), e.getY()));
+                                        polygon.getPoints().add(new Point2D(e.getX(), e.getY()));
                                         // jinak se nový bod přidá mezi nejbližší bod a druhý nejbližší bod polygonu podle jejich indexů
                                     } else if (indexClosest < indexSecondClosest ) {
-                                        polygon.getPoints().add(indexClosest + 1, new Point(e.getX(), e.getY()));
+                                        polygon.getPoints().add(indexClosest + 1, new Point2D(e.getX(), e.getY()));
                                     } else {
-                                        polygon.getPoints().add(indexSecondClosest + 1, new Point(e.getX(), e.getY()));
+                                        polygon.getPoints().add(indexSecondClosest + 1, new Point2D(e.getX(), e.getY()));
                                     }
                                     sceneRenderer.repaintShapes();
                                     panel.repaint();
@@ -256,8 +253,8 @@ public class Controller2D {
                     // kontrola; print všech tvarů v rasteru
                     for (Polygon polygon : scene.getPolygons()) {
                         System.out.print("\nPolygon: ");
-                        for (Point point : polygon.getPoints()) {
-                            System.out.print("Point: (" + point.getX() + ", " + point.getY() + ") ");
+                        for (Point2D point : polygon.getPoints()) {
+                            System.out.print("Point2D: (" + point.getX() + ", " + point.getY() + ") ");
                         }
                     }
                     for (Segment segment : scene.getSegments()) {

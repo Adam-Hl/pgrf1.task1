@@ -1,6 +1,6 @@
 package rasterize;
 
-import shapes.Point;
+import shapes.Point2D;
 import shapes.Polygon;
 
 import java.util.ArrayList;
@@ -14,16 +14,16 @@ public class PolygonRasterizer{
     }
 
     public void rasterize(Polygon polygon) {
-            ArrayList<Point> points = polygon.getPoints();
-            for (int i = 0; i < points.size(); i++) {
-                Point p1 = points.get(i);
-                Point p2;
+            ArrayList<Point2D> point2DS = polygon.getPoints();
+            for (int i = 0; i < point2DS.size(); i++) {
+                Point2D p1 = point2DS.get(i);
+                Point2D p2;
                 if (polygon.isClosed()) {
                     // modulo pro spojení posledního bodu s prvním pokud je polygon uzavřený
-                    p2 = points.get((i + 1) % points.size());
+                    p2 = point2DS.get((i + 1) % point2DS.size());
                 } else {
-                    if (i + 1 < points.size()) {
-                        p2 = points.get(i + 1);
+                    if (i + 1 < point2DS.size()) {
+                        p2 = point2DS.get(i + 1);
                     } else {
                         break;
                     }

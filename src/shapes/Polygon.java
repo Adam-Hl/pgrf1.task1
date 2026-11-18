@@ -3,23 +3,23 @@ package shapes;
 import java.util.ArrayList;
 
 public class Polygon {
-    private final ArrayList<Point> points;
+    private final ArrayList<Point2D> point2DS;
     private boolean isClosed;
     private int color;
 
     public Polygon(int color) {
-        points = new ArrayList<>();
+        point2DS = new ArrayList<>();
         isClosed = false;
         this.color = color;
     }
 
 
-    public void addPoint(Point point) {
-        points.add(point);
+    public void addPoint(Point2D point2D) {
+        point2DS.add(point2D);
     }
 
-    public ArrayList<Point> getPoints() {
-        return points;
+    public ArrayList<Point2D> getPoints() {
+        return point2DS;
     }
 
     public boolean isClosed() {
@@ -38,8 +38,8 @@ public class Polygon {
         // vytvářím seznam hran z bodů v polygonu
         ArrayList<Edge> edges = new ArrayList<>();
         for (int i = 0; i < getPoints().size(); i++) {
-            Point p1 = getPoints().get(i);
-            Point p2 = getPoints().get((i + 1) % getPoints().size());
+            Point2D p1 = getPoints().get(i);
+            Point2D p2 = getPoints().get((i + 1) % getPoints().size());
             Edge edge = new Edge(p1, p2);
             if (!edge.isHorizontal()) {
                 edge.orientate();
@@ -53,8 +53,8 @@ public class Polygon {
         // vytvářím seznam hran z bodů v polygonu
         ArrayList<Edge> edges = new ArrayList<>();
         for (int i = 0; i < getPoints().size(); i++) {
-            Point p1 = getPoints().get(i);
-            Point p2 = getPoints().get((i + 1) % getPoints().size());
+            Point2D p1 = getPoints().get(i);
+            Point2D p2 = getPoints().get((i + 1) % getPoints().size());
             Edge edge = new Edge(p1, p2);
             edges.add(edge);
         }

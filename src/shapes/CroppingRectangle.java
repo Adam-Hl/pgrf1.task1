@@ -4,22 +4,22 @@ public class CroppingRectangle extends Polygon{
 
     public CroppingRectangle() {
         super(0xFFC107); // žlutá barva
-        this.addPoint(new Point(250, 175));
-        this.addPoint(new Point(550, 175));
-        this.addPoint(new Point(550, 425));
-        this.addPoint(new Point(250, 425));
+        this.addPoint(new Point2D(250, 175));
+        this.addPoint(new Point2D(550, 175));
+        this.addPoint(new Point2D(550, 425));
+        this.addPoint(new Point2D(250, 425));
         this.setClosed(true);
     }
 
     // metoda pro přesunutí bodu obdélníku na nové souřadnice, přičemž se zachovává tvar obdélníku
-    public void movePoint(Point point, int x, int y) {
-        int index = getPoints().indexOf(point);
+    public void movePoint(Point2D point2D, int x, int y) {
+        int index = getPoints().indexOf(point2D);
 
         if (index < 0) {
             throw new IllegalArgumentException("Bod není součástí obdélníku");
         }
 
-        Point opposite = getPoints().get((index + 2) % 4);
+        Point2D opposite = getPoints().get((index + 2) % 4);
 
         int minX = Math.min(x, opposite.getX());
         int maxX = Math.max(x, opposite.getX());

@@ -10,7 +10,7 @@ public class Edge {
         this.y2 = y2;
     }
 
-    public Edge(Point p1, Point p2) {
+    public Edge(Point2D p1, Point2D p2) {
         this.x1 = p1.getX();
         this.y1 = p1.getY();
         this.x2 = p2.getX();

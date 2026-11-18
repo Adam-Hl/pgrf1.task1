@@ -3,11 +3,10 @@ package scene;
 import croppers.PolygonCrop;
 import croppers.SimpleFrameCrop;
 import fill.Filler;
-import fill.SeedFill;
 import raster.Raster;
 import rasterize.LineRasterizer;
 import rasterize.PolygonRasterizer;
-import shapes.Point;
+import shapes.Point2D;
 import shapes.Polygon;
 import shapes.Segment;
 
@@ -56,8 +55,8 @@ public class SceneRenderer {
         Iterator<Polygon> polygonIterator = scene.getPolygons().iterator();
         while (polygonIterator.hasNext()) {
             Polygon polygon = polygonIterator.next();
-            ArrayList<Point> points = polygon.getPoints();
-            if (points.isEmpty()) {
+            ArrayList<Point2D> point2DS = polygon.getPoints();
+            if (point2DS.isEmpty()) {
                 // odstranění polygonu, pokud má méně než 1 bod
                 polygonIterator.remove();
                 continue;
