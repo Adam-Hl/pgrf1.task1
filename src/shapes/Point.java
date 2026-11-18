@@ -1,10 +1,10 @@
 package shapes;
 
-public class Point2D {
+public class Point {
     private int x;
     private int y;
 
-    public Point2D(int x, int y) {
+    public Point(int x, int y) {
         this.x = x;
         this.y = y;
     }

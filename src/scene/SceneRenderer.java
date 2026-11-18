@@ -6,7 +6,7 @@ import fill.Filler;
 import raster.Raster;
 import rasterize.LineRasterizer;
 import rasterize.PolygonRasterizer;
-import shapes.Point2D;
+import shapes.Point;
 import shapes.Polygon;
 import shapes.Segment;
 
@@ -55,8 +55,8 @@ public class SceneRenderer {
         Iterator<Polygon> polygonIterator = scene.getPolygons().iterator();
         while (polygonIterator.hasNext()) {
             Polygon polygon = polygonIterator.next();
-            ArrayList<Point2D> point2DS = polygon.getPoints();
-            if (point2DS.isEmpty()) {
+            ArrayList<Point> points = polygon.getPoints();
+            if (points.isEmpty()) {
                 // odstranění polygonu, pokud má méně než 1 bod
                 polygonIterator.remove();
                 continue;

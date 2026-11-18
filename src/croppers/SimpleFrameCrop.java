@@ -32,28 +32,28 @@ public class SimpleFrameCrop {
     // metoda pro nastavení ořezávacího obdélníku podle zadaného polygonu
     public void setCropRectangle(Polygon cropRectangle) {
         xMin = cropRectangle.getPoints().stream()
-                .mapToInt(Point2D::getX)
+                .mapToInt(Point::getX)
                 .min()
                 .orElseThrow();
 
         xMax = cropRectangle.getPoints().stream()
-                .mapToInt(Point2D::getX)
+                .mapToInt(Point::getX)
                 .max()
                 .orElseThrow();
 
         yMin = cropRectangle.getPoints().stream()
-                .mapToInt(Point2D::getY)
+                .mapToInt(Point::getY)
                 .min()
                 .orElseThrow();
 
         yMax = cropRectangle.getPoints().stream()
-                .mapToInt(Point2D::getY)
+                .mapToInt(Point::getY)
                 .max()
                 .orElseThrow();
     }
 
     // implementace cohen-sutherland algoritmu pro ořezávání segmentů podle zadaného obdélníku
-    private int getCode(Point2D p) {
+    private int getCode(Point p) {
         int code = insideCode;
 
         if (p.getX() < xMin) {
@@ -70,8 +70,8 @@ public class SimpleFrameCrop {
     }
 
     public Segment CropCohenSutherland(Segment segment) {
-        Point2D p1 = segment.getStart();
-        Point2D p2 = segment.getEnd();
+        Point p1 = segment.getStart();
+        Point p2 = segment.getEnd();
 
         int code1 = getCode(p1);
         int code2 = getCode(p2);
@@ -126,16 +126,16 @@ public class SimpleFrameCrop {
 
                 // přesunutí bodu, který byl venku
                 if (codeOut == code1) {
-                    p1 = new Point2D(x, y);
+                    p1 = new Point(x, y);
                     code1 = getCode(p1);
                 } else {
-                    p2 = new Point2D(x, y);
+                    p2 = new Point(x, y);
                     code2 = getCode(p2);
                 }
             }
         }
         if (accepted) {
-            return new Segment(new Point2D(p1.getX(), p1.getY()), new Point2D(p2.getX(), p2.getY()), segment.getColor());
+            return new Segment(new Point(p1.getX(), p1.getY()), new Point(p2.getX(), p2.getY()), segment.getColor());
         } else {
             return null; // segment je zcela mimo obdélník
         }

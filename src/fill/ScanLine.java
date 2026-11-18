@@ -2,7 +2,7 @@ package fill;
 
 import raster.Raster;
 import shapes.Edge;
-import shapes.Point2D;
+import shapes.Point;
 import shapes.Polygon;
 
 import java.util.ArrayList;
@@ -25,12 +25,12 @@ public class ScanLine implements Filler {
         // najít správný min a max z polygonu
         int yMin = Integer.MAX_VALUE;
         int yMax = Integer.MIN_VALUE;
-        for (Point2D point2D : polygon.getPoints()) {
-            if (point2D.getY() < yMin) {
-                yMin = point2D.getY();
+        for (Point point : polygon.getPoints()) {
+            if (point.getY() < yMin) {
+                yMin = point.getY();
             }
-            if (point2D.getY() > yMax) {
-                yMax = point2D.getY();
+            if (point.getY() > yMax) {
+                yMax = point.getY();
             }
         }
 
